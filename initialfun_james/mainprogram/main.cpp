@@ -3,6 +3,9 @@
 #include "SDL_image.h"
 #include "res_path.h"
 
+#define WINDOW_WIDTH 1300
+#define WINDOW_HEIGHT 800
+
 int main(int argc, char** argv){
 	
 	// initialize window, renderer, textures
@@ -11,7 +14,7 @@ int main(int argc, char** argv){
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Initial fun", 100, 100, 650, 500, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("Initial fun", 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == nullptr){
         std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
         SDL_Quit();
@@ -48,15 +51,15 @@ int main(int argc, char** argv){
     player_position.w = 50;
     player_position.h = 50;
     bool quitnow = false;
-	bool trackingnow = false;
-    int dx = 0;
-    int dy = 0;
-	int player_speed = 10;
+    int dx = 6;
+    int dy = 14;
+	int clickx, clicky;
+	double forcex = 0, forcey = 0;
     while(!quitnow){
         while (SDL_PollEvent(&event)){
              if (event.type == SDL_KEYDOWN){
                 switch(event.key.keysym.sym){
-                 case SDLK_w:
+/*                 case SDLK_w:
                     dy = -player_speed;
                     break;
                  case SDLK_s:
@@ -68,14 +71,14 @@ int main(int argc, char** argv){
                  case SDLK_d:
                     dx = player_speed;
                     break;
-                case SDLK_ESCAPE:
+*/                case SDLK_ESCAPE:
                     quitnow = true;
                     break;
                 default:
                     break;
                 }
             }
-			else if (event.type == SDL_KEYUP){
+/*			else if (event.type == SDL_KEYUP){
                 switch(event.key.keysym.sym){
                  case SDLK_w:
                     dy = 0;
@@ -93,35 +96,47 @@ int main(int argc, char** argv){
                     break;
                 }
             }
-			 else if (event.type == SDL_MOUSEBUTTONDOWN){
-				trackingnow = true;
-
+*/			 else if (event.type == SDL_MOUSEBUTTONDOWN){
+				clickx = event.button.x;
+				clicky = event.button.y;
 			 }
 			 else if (event.type == SDL_MOUSEBUTTONUP){
-				 trackingnow = false;
+				forcex = 0.1*(clickx - event.button.x);
+				forcey = 0.1*(clicky - event.button.y);
 			 }
             else if (event.type == SDL_QUIT){
                 quitnow = true;
             }
         }
+		player_position.y += dy;
+		player_position.x += dx;
 
-		if (trackingnow){
-			player_position.x = event.button.x - 25;
-			player_position.y = event.button.y - 25;
+		if (player_position.x < 100){
+			dx = -dx + forcex;
+			dy =  dy + forcey;
+			player_position.x += 2*dx;
 		}
-		else{
-			if (dx != 0 && dy != 0){
-				dx = 0.7074*dx;
-				dy = 0.7074*dy;
-			}
-			player_position.y += dy;
-			player_position.x += dx;
+		else if (player_position.x+50 > WINDOW_WIDTH-100){
+			dx = -dx + forcex;
+			dy =  dy + forcey;
+			player_position.x += 2*dx;
 		}
+		else if (player_position.y < 100){
+			dy = -dy + forcey;
+			dx =  dx + forcex;
+			player_position.y += 2*dy;
+		}
+		else if (player_position.y+50 > WINDOW_HEIGHT-100){
+			dy = -dy + forcey;
+			dx =  dx + forcex;
+			player_position.y += 2*dy;
+		}
+
 
         SDL_RenderClear(renderer);
 
-        for (int i = 0; i < 500; i += 50){
-            for (int j = 0; j < 650; j += 50){
+        for (int i = 100; i < WINDOW_HEIGHT-100; i += 50){
+            for (int j = 100; j < WINDOW_WIDTH-100; j += 50){
                 SDL_Rect dst;
                 dst.y = i;
                 dst.x = j;

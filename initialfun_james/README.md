@@ -1,3 +1,11 @@
 # Initial Fun
 
-As far as this commit, I have just made a little circle/square move around the window with 'wasd' or clicking and dragging with the mouse. It has largely been based on TwinkleBearDev's tutorial on SDL2.0.
+This has largely been based on TwinkleBearDev's tutorial on SDL2.0.
+
+I usually build this with:
+	mkdir build && cd build
+	cmake -DCMAKE_BUILD_TYPE=Debug ..
+	make install
+	../bin/mainprogram
+
+With this commit, the character floats around and bounces off walls. You can make him direct bounces by clicking and dragging anywhere on the map.
