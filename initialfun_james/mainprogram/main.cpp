@@ -115,22 +115,30 @@ int main(int argc, char** argv){
 			dx = -dx + forcex;
 			dy =  dy + forcey;
 			player_position.x += 2*dx;
+			forcex = 0;
+			forcey = 0;
 		}
 		else if (player_position.x+50 > WINDOW_WIDTH-100){
 			dx = -dx + forcex;
 			dy =  dy + forcey;
 			player_position.x += 2*dx;
+			forcex = 0;
+			forcey = 0;
 		}
 		else if (player_position.y < 100){
 			dy = -dy + forcey;
 			dx =  dx + forcex;
 			player_position.y += 2*dy;
+			forcex = 0;
+			forcey = 0;
 		}
 		else if (player_position.y+50 > WINDOW_HEIGHT-100){
 			dy = -dy + forcey;
 			dx =  dx + forcex;
 			player_position.y += 2*dy;
-		}
+			forcex = 0;
+			forcey = 0;
+	}
 
 
         SDL_RenderClear(renderer);
