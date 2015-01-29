@@ -9,9 +9,10 @@ const int SCREEN_HEIGHT = 480;
 const int SCREEN_FPS = 60; //desired frames per second
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS; //milliseconds per frame, rounds low
 
-const int SPRITE_SIZE = 63; //square sprite size  (ie 63 = 64x64 pixel sprite)
+const int SPRITE_SIZE = 64; //square sprite size  (ie 63 = 64x64 pixel sprite)
+const float SPRITE_SCALE = 3; //sprite scaling, >1 is bigger
 const int SPRITE_FRAMES = 2; //number of sprites in animation
-const int SPRITE_SWITCH_TIME = 1000; //time in ms between switching frames
+const int SPRITE_SWITCH_TIME = 250; //time in ms between switching frames
 const int SPRITE_WAIT = SPRITE_SWITCH_TIME / SCREEN_TICKS_PER_FRAME; //frames to wait for animation switch
 
 const std::string SPRITE_PATH = "animation.png"; //where to find animation
@@ -171,8 +172,8 @@ void LTexture::render( int x, int y, SDL_Rect* clip )
     //Set clip rendering dimensions
     if( clip != NULL )
     {
-        renderQuad.w = clip->w;
-        renderQuad.h = clip->h;
+        renderQuad.w = (clip->w) * SPRITE_SCALE;
+        renderQuad.h = (clip->h) * SPRITE_SCALE;
     }
 
     //render to screen
@@ -356,8 +357,8 @@ int main( int argc, char* args[] )
                 SDL_Rect* currentClip = &gSpriteClips[ frame / SPRITE_WAIT ];
 
                 //Renders sprite in center of screen
-                gSpriteSheetTexture.render( ( SCREEN_WIDTH - currentClip->w ) / 2,
-                        ( SCREEN_HEIGHT - currentClip->h ) /2, currentClip );
+                gSpriteSheetTexture.render( ( SCREEN_WIDTH - (currentClip->w * SPRITE_SCALE) ) / 2,
+                        ( SCREEN_HEIGHT - (currentClip->h * SPRITE_SCALE) ) /2, currentClip );
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
