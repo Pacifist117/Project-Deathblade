@@ -55,6 +55,7 @@ int main(int argc, char** argv){
     int dy = 14;
 	int clickx, clicky;
 	double forcex = 0, forcey = 0;
+	double zoomfactor = 0.5;
     while(!quitnow){
         while (SDL_PollEvent(&event)){
              if (event.type == SDL_KEYDOWN){
@@ -104,52 +105,65 @@ int main(int argc, char** argv){
 				forcex = 0.1*(clickx - event.button.x);
 				forcey = 0.1*(clicky - event.button.y);
 			 }
+			 else if (event.type == SDL_MOUSEWHEEL){
+				//event.wheel.direction,x,y
+				 zoomfactor += event.wheel.y*0.02;
+			 }
             else if (event.type == SDL_QUIT){
                 quitnow = true;
             }
         }
 		player_position.y += dy;
 		player_position.x += dx;
+	
+		int mapwidth = WINDOW_WIDTH*zoomfactor; 
+		int mapheight = WINDOW_HEIGHT*zoomfactor; 
+		int buff = 100*zoomfactor;
+		int tilewidth = 50*zoomfactor;
+		player_position.w = 50*zoomfactor;
+		player_position.h = 50*zoomfactor;
+		int player_width = 50*zoomfactor;
 
-		if (player_position.x < 100){
+
+		if (player_position.x < buff){
 			dx = -dx + forcex;
 			dy =  dy + forcey;
 			player_position.x += 2*dx;
 			forcex = 0;
 			forcey = 0;
 		}
-		else if (player_position.x+50 > WINDOW_WIDTH-100){
+		else if (player_position.x+player_width > mapwidth-buff){
 			dx = -dx + forcex;
 			dy =  dy + forcey;
 			player_position.x += 2*dx;
 			forcex = 0;
 			forcey = 0;
 		}
-		else if (player_position.y < 100){
+		else if (player_position.y < buff){
 			dy = -dy + forcey;
 			dx =  dx + forcex;
 			player_position.y += 2*dy;
 			forcex = 0;
 			forcey = 0;
 		}
-		else if (player_position.y+50 > WINDOW_HEIGHT-100){
+		else if (player_position.y+player_width > mapheight-buff){
 			dy = -dy + forcey;
 			dx =  dx + forcex;
 			player_position.y += 2*dy;
 			forcex = 0;
 			forcey = 0;
-	}
+		}
 
 
         SDL_RenderClear(renderer);
-
-        for (int i = 100; i < WINDOW_HEIGHT-100; i += 50){
-            for (int j = 100; j < WINDOW_WIDTH-100; j += 50){
+	
+        for (int i = buff; i < mapheight-buff; i += tilewidth){
+            for (int j = buff; j < mapwidth-buff; j += tilewidth){
                 SDL_Rect dst;
                 dst.y = i;
                 dst.x = j;
-                dst.w = 50;
-                dst.h = 50;
+                dst.w = tilewidth;
+                dst.h = tilewidth;
                 SDL_RenderCopy(renderer, bgtile_texture, NULL, &dst);
             }
         }

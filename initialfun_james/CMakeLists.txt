@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
-project(TwinklebearDevLessons)
+project(initialfun)
 
 # Use our modified FindSDL2* modules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${TwinklebearDevLessons_SOURCE_DIR}/cmake")
-set(BIN_DIR ${TwinklebearDevLessons_SOURCE_DIR}/bin)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${initialfun_SOURCE_DIR}/cmake")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${initialfun_SOURCE_DIR}/lib")
+set(BIN_DIR ${initialfun_SOURCE_DIR}/bin)
 
 # Bump up warning levels appropriately for clang, gcc & msvc and build in debug mode
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
@@ -23,3 +24,5 @@ include_directories(${SDL2_INCLUDE_DIR})
 include_directories(include)
 
 add_subdirectory(mainprogram)
+add_subdirectory(developer_console)
+add_subdirectory(developer_consoletester)
