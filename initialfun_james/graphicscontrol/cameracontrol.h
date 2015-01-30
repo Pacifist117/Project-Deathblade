@@ -1,3 +1,7 @@
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include "SDL.h"
 
 class TempSettings {
 	public:
@@ -9,7 +13,20 @@ class TempSettings {
 		double maph;
 		double mapx;
 		double mapy;
-		
+
+		std::vector<ControlBaseClass*> affectedsettings;
+
+		void addToList(ControlBaseClass* newcontrol){
+			affectedsettings.push_back(newcontrol);
+		}
+
+		void when_a_setting_is_changed(){
+			// change the setting
+			// eg. mapw = 1400
+
+			for (unsigned int i = 0; i < affectedsettings.size(); ++i)
+				affectedsettings[i].update_settings();
+		}
 
 		TempSettings(){
 			window_width = 1300;
@@ -20,8 +37,17 @@ class TempSettings {
 
 };
 
+class ControlBaseClass {
+	
+	public:
+		ControlBaseClass(){};
+		virtual ~ControlBaseClass(){};
 
-class CameraControl {
+		virtual void update_settings();
+}
+
+
+class CameraControl : public ControlBaseClass {
 
 	private:
 		double fieldofviewx; // radians

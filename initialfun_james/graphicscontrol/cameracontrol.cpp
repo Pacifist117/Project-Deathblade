@@ -16,6 +16,7 @@ CameraControl::CameraControl(TempSettings *gamesettings){
 	zoom_friction = 0.3;
 
 	game_settings = gamesettings;
+	gamesettings->addToList(this);
 	update_settings();
 
 	max_pixelratio.push_back( 1000);
