@@ -3,6 +3,16 @@
 #include <vector>
 #include "SDL.h"
 
+class ControlBaseClass {
+	
+	public:
+		ControlBaseClass(){}
+		virtual ~ControlBaseClass(){}
+
+		virtual void update_settings(){};
+};
+
+
 class TempSettings {
 	public:
 
@@ -25,27 +35,15 @@ class TempSettings {
 			// eg. mapw = 1400
 
 			for (unsigned int i = 0; i < affectedsettings.size(); ++i)
-				affectedsettings[i].update_settings();
+				affectedsettings[i]->update_settings();
 		}
 
 		TempSettings(){
-			window_width = 1300;
-			window_height = 800;
 		}
 
 		~TempSettings(){}
 
 };
-
-class ControlBaseClass {
-	
-	public:
-		ControlBaseClass(){};
-		virtual ~ControlBaseClass(){};
-
-		virtual void update_settings();
-}
-
 
 class CameraControl : public ControlBaseClass {
 
@@ -90,12 +88,13 @@ class CameraControl : public ControlBaseClass {
 			Gui = 2
 		};
 
-		ZoomControl(TempSettings *gamesettings);
-		~ZoomControl();
+		CameraControl(TempSettings *gamesettings);
+		~CameraControl();
 
-		void adjust_zoom(int input);
+		void adjust_zoom(int input, double mouse_x, double mouse_y);
 		void mousecontrol_on(){ mouse_control = true;}
 		void mousecontrol_off(){ mouse_control = false;}
+		bool mouse_controlling(){ return mouse_control;}
 		void mousecontrol_move(int relative_x, int relative_y);
 
 		SDL_Rect calculate_display_destination ( double x,
@@ -113,4 +112,7 @@ class CameraControl : public ControlBaseClass {
 		int pixelfromy(double y, ZPlane z);
 		int pixelfromw(double w, ZPlane z);
 		int pixelfromh(double h, ZPlane z);
+
+		// inherited
+		void update_settings();
 };

@@ -8,24 +8,30 @@ CameraControl::CameraControl(TempSettings *gamesettings){
 	}
 
 	planeZs.push_back(0);
-	planeZs.push_back(0.5);
+	planeZs.push_back(0.2);
 	planeZs.push_back(1);
 
-	zoomin_speed = 0.25;
-	zoomout_seed = 0.25;
+	zoomin_speed = 0.3;
+	zoomout_speed = 0.3;
 	zoom_friction = 0.3;
 
-	game_settings = gamesettings;
-	gamesettings->addToList(this);
-	update_settings();
+	mouse_control = false;
+	momentum_on = true;
+
+	fieldofviewx = 75*3.14156/180.0;
+	tanfovx = tan(fieldofviewx/2.0);
 
 	max_pixelratio.push_back( 1000);
 	max_pixelratio.push_back( max_pixelratio[Floor] + planeZs[Player]*2*tanfovx);
 	max_pixelratio.push_back( 1 );
 
-	prx.push_back(max_pixelratio[Floor]);
-	prx.push_back(max_pixelratio[Player]);
-	prx.push_back(max_pixelratio[Gui]);
+	game_settings = gamesettings;
+	gamesettings->addToList(this);
+	update_settings();
+
+	pixelratio.push_back(max_pixelratio[Floor]);
+	pixelratio.push_back(max_pixelratio[Player]);
+	pixelratio.push_back(max_pixelratio[Gui]);
 
 }
 
@@ -33,9 +39,6 @@ CameraControl::~CameraControl(){
 }
 
 void CameraControl::update_settings(){
-
-	fieldofviewx = 75*3.14156/180.0;
-	tanfovx = tan(fieldofviewx/2.0);
 
 	fieldofviewy = 2*atan(game_settings->window_height*tanfovx/game_settings->window_width);
 	tanfovy = tan(fieldofviewy/2.0);
@@ -47,22 +50,23 @@ void CameraControl::update_settings(){
 	max_y = game_settings->mapy + game_settings->maph;
 	min_y = game_settings->mapy;
 
-	min_z = game_settings->window_width/(2.0*max_pixelratio[Player]*tanfov);
-	max_z = game_settings->mapw/(2.0*tanfov) + planeZs[Player];
+	min_z = game_settings->window_width/(2.0*max_pixelratio[Player]*tanfovx);
+	max_z = game_settings->mapw/(2.0*tanfovx) + planeZs[Player];
 	camz = max_z;
 
 	
 }
 
-void CameraControl::adjust_zoom(int input){
+void CameraControl::adjust_zoom(int input, double mouse_x, double mouse_y){
 	
 	static double velocity = 0;
-
-	if (input > 0){
+	double oldpr = pixelratio[Player];
+	
+	if (input < 0){
 		velocity += zoomin_speed*(max_z - camz);
 	}
-	else if (input < 0){
-		velocity -= zoomout_speed*(min_z - camz);h
+	else if (input > 0){
+		velocity += zoomout_speed*(min_z - camz);
 	}
 
 	camz += velocity;
@@ -74,14 +78,26 @@ void CameraControl::adjust_zoom(int input){
 	if (camz > max_z) camz = max_z;
 	if (camz < min_z) camz = min_z;
 
-	prx = game_settings->window_width/(
+	pixelratio[Floor] = game_settings->window_width/(2.0*camz - planeZs[Floor]*tanfovx);
+	pixelratio[Player] = game_settings->window_width/(2.0*camz - planeZs[Player]*tanfovx);
+
+	if (pixelratio[Player] != oldpr){
+		camx = mouse_x - (oldpr/pixelratio[Player])*(mouse_x - camx);
+		camy = mouse_y - (oldpr/pixelratio[Player])*(mouse_y - camy);
+	}
 
 	return;
 }
 
 void CameraControl::mousecontrol_move(int relative_x, int relative_y){
-
+	camx = camx - wfrompixel(relative_x, Player);
+	camy = camy - hfrompixel(relative_y, Player);
+	if (camx > max_x) camx = max_x;
+	else if (camx < min_x) camx = min_x;
+	if (camy > max_y) camy = max_y;
+	else if (camy < min_y) camy = min_y;
 }
+
 SDL_Rect CameraControl::calculate_display_destination(  double x, 
 														double y, 
 														double w, 
@@ -104,12 +120,12 @@ double CameraControl::yfrompixel(int pixelY, ZPlane z){
 	return (pixelY - game_settings->window_height/2.0)/pixelratio[z] + camy;
 }
 
-double CameraControl::widthfrompixel(int pixelW, ZPlane z){
-	return pixelratio[z]*pixelW;
+double CameraControl::wfrompixel(int pixelW, ZPlane z){
+	return pixelW/pixelratio[z];
 }
 
-double CameraControl::heightfrompixel(int pixelH, ZPlane z){
-	return pixelratio[z]*pixelH;
+double CameraControl::hfrompixel(int pixelH, ZPlane z){
+	return pixelH/pixelratio[z];
 }
 
 int CameraControl::pixelfromx(double x, ZPlane z){
@@ -121,10 +137,10 @@ int CameraControl::pixelfromy(double y, ZPlane z){
 }
 
 int CameraControl::pixelfromw(double w, ZPlane z){
-	return w/pixelratio[z];
+	return w*pixelratio[z];
 }
 
 int CameraControl::pixelfromh(double h, ZPlane z){
-	return h/pixelratio[z];
+	return h*pixelratio[z];
 }
 

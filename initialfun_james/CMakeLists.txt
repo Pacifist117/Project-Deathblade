@@ -21,8 +21,10 @@ endif()
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIR})
-include_directories(include)
+include_directories(include graphicscontrol)
+link_directories(lib)
 
-add_subdirectory(mainprogram)
 add_subdirectory(developer_console)
 add_subdirectory(developer_consoletester)
+add_subdirectory(graphicscontrol)
+add_subdirectory(mainprogram)
