@@ -21,9 +21,11 @@ endif()
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIR})
-include_directories(include graphicscontrol)
+include_directories(include ${CMAKE_SOURCE_DIR}/)
 link_directories(lib)
 
+add_subdirectory(gameobjects)
+add_subdirectory(player)
 add_subdirectory(developer_console)
 add_subdirectory(developer_consoletester)
 add_subdirectory(graphicscontrol)

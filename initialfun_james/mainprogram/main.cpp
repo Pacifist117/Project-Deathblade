@@ -4,8 +4,10 @@
 #include "res_path.h"
 
 #include <cmath>
-#include "cameracontrol.h"
+#include "graphicscontrol/cameracontrol.h"
 
+double fx = 0;
+double fy = 0;
 double getx();
 double gety();
 
@@ -88,6 +90,8 @@ int main(){
 			else if (event.type == SDL_MOUSEBUTTONDOWN){
                 if (event.button.button == SDL_BUTTON_LEFT)
                     camera.mousecontrol_on();
+                //if (event.button.button == SDL_BUTTON_RIGHT)
+
 			}
 			else if (event.type == SDL_MOUSEBUTTONUP){
                 if (event.button.button == SDL_BUTTON_LEFT)
@@ -145,7 +149,7 @@ double getx(){
 	x += dx;
 
 	if (x >= 5 || x <= 0)
-		dx -= 2*dx;
+        dx -= 2*dx + fx;
 	
 	return x;
 }
@@ -157,7 +161,7 @@ double gety(){
 	y += dy;
 
 	if (y >= 3 || y <= 0)
-		dy -= 2*dy;
+        dy -= 2*dy + fy;
 
 	return y;
 }
