@@ -11,8 +11,8 @@ CameraControl::CameraControl(TempSettings *gamesettings){
 	planeZs.push_back(0.2);
 	planeZs.push_back(1);
 
-	zoomin_speed = 0.3;
-	zoomout_speed = 0.3;
+    zoomin_speed = 0.1;
+    zoomout_speed = 0.1;
 	zoom_friction = 0.3;
 
 	mouse_control = false;
@@ -58,33 +58,63 @@ void CameraControl::update_settings(){
 }
 
 void CameraControl::adjust_zoom(int input, double mouse_x, double mouse_y){
-	
-	static double velocity = 0;
-	double oldpr = pixelratio[Player];
-	
-	if (input < 0){
-		velocity += zoomin_speed*(max_z - camz);
-	}
-	else if (input > 0){
-		velocity += zoomout_speed*(min_z - camz);
-	}
 
-	camz += velocity;
-	velocity -= velocity*zoom_friction;
-	if (velocity*velocity < 0.01){
-		velocity = 0;
-	}
+    static double dx = 0;
+    static double dy = 0;
+    static double dz = 0;
 
-	if (camz > max_z) camz = max_z;
+    double oldpr = pixelratio[Player];
+
+    if (input < 0){
+        if (camz > 0.95*max_z){
+            camz = max_z;
+            camx = game_settings->mapmidx;
+            camy = game_settings->mapmidy;
+            dz = 0; dx = 0; dy = 0;
+        }
+        else{
+            dx = 0.5*(camx - game_settings->mapmidx)/(camz - max_z);
+            dy = 0.5*(camy - game_settings->mapmidy)/(camz - max_z);
+            dz += zoomout_speed*(max_z - camz - input);
+        }
+        camx += dx;
+        camy += dy;
+
+        if(momentum_on){
+            dx -= dx*zoom_friction;
+            dy -= dy*zoom_friction;
+            if (dx*dx < 0.01) dx = 0;
+            if (dy*dy < 0.01) dy = 0;
+        }
+        else{
+            dx = 0;
+            dy = 0;
+        }
+    }
+    else if (input > 0){
+        dz += zoomin_speed*(min_z - camz - input);
+    }
+
+    camz += dz;
+
+    if (momentum_on){
+        dz -= dz*zoom_friction;
+        if (dz*dz < 0.01) dz = 0;
+    }
+    else {
+        dz = 0;
+    }
+
+    if (camz > max_z) camz = max_z;
 	if (camz < min_z) camz = min_z;
 
 	pixelratio[Floor] = game_settings->window_width/(2.0*camz - planeZs[Floor]*tanfovx);
 	pixelratio[Player] = game_settings->window_width/(2.0*camz - planeZs[Player]*tanfovx);
 
-	if (pixelratio[Player] != oldpr){
-		camx = mouse_x - (oldpr/pixelratio[Player])*(mouse_x - camx);
-		camy = mouse_y - (oldpr/pixelratio[Player])*(mouse_y - camy);
-	}
+    if(pixelratio[Player] != oldpr){
+        camx = mouse_x - (oldpr/pixelratio[Player])*(mouse_x - camx);
+        camy = mouse_y - (oldpr/pixelratio[Player])*(mouse_y - camy);
+    }
 
 	return;
 }

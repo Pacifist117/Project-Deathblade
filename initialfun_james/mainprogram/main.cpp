@@ -17,6 +17,8 @@ int main(){
 	gamesettings.maph = 3;
 	gamesettings.mapx = 0;
 	gamesettings.mapy = 0;
+    gamesettings.mapmidx = gamesettings.mapw/2.0;
+    gamesettings.mapmidy = gamesettings.maph/2.0;
 	gamesettings.window_width = 1300;
 	gamesettings.window_height = 800;
 	CameraControl camera(&gamesettings);
@@ -25,8 +27,8 @@ int main(){
 	const double tileh = 0.05;
 	const int tilepw = 50;
 	const int tileph = 50;
-	double mousex = 0.5;
-	double mousey = 0.5;
+    double mousex = gamesettings.mapmidx;
+    double mousey = gamesettings.mapmidy;
 
 
 // initialize window, renderer, textures
@@ -35,7 +37,7 @@ int main(){
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Initial fun", 0, 0, gamesettings.window_width, gamesettings.window_height, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("deathblade_floating", 0, 0, gamesettings.window_width, gamesettings.window_height, SDL_WINDOW_SHOWN);
     if (window == nullptr){
         std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
         SDL_Quit();
@@ -84,13 +86,15 @@ int main(){
 
 			}
 			else if (event.type == SDL_MOUSEBUTTONDOWN){
-				camera.mousecontrol_on();
+                if (event.button.button == SDL_BUTTON_LEFT)
+                    camera.mousecontrol_on();
 			}
 			else if (event.type == SDL_MOUSEBUTTONUP){
-				camera.mousecontrol_off();
+                if (event.button.button == SDL_BUTTON_LEFT)
+                    camera.mousecontrol_off();
 			}
 			else if (event.type == SDL_MOUSEWHEEL){
-				zoomdirection = event.wheel.y;
+                zoomdirection += event.wheel.y;
 			}
 			else if (event.type == SDL_MOUSEMOTION){
 
