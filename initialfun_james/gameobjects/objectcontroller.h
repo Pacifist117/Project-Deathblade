@@ -1,6 +1,9 @@
 #ifndef OBJECTCONTROLLER_H
 #define OBJECTCONTROLLER_H
 
+#include "gameobjects/objectbase.h"
+#include <vector>
+
 /*!
  * \brief The ObjectController class routinely updates all objects and checks for intersections.
  */
@@ -10,6 +13,10 @@ public:
     ObjectController();
     ~ObjectController();
 
+    std::vector<ObjectBaseClass*> objects;
+
+    void step_time();
+    void check_for_collisions();
 
 };
 
