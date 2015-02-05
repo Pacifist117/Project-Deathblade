@@ -1,6 +1,7 @@
 #ifndef OBJECTCONTROLLER_H
 #define OBJECTCONTROLLER_H
 
+#include "graphicscontrol/controlbaseclass.h"
 #include "gameobjects/objectbase.h"
 #include <vector>
 

@@ -1,7 +1,11 @@
 #ifndef OBJECTBASE_H
 #define OBJECTBASE_H
 
-#include "../graphicscontrol/cameracontrol.h" // temporarily for tempsettings
+#include "graphicscontrol/gameenums.h"
+#include "SDL.h"
+#include "SDL2_gfxPrimitives.h"
+
+#include <vector>
 
 /*!
  * \brief The ObjectBaseClass class is the highest level of object. It mainly contains
@@ -10,16 +14,20 @@
 class ObjectBaseClass {
 
 public:
-    ObjectBaseClass(TempSettings *gamesettings);
-    ~ObjectBaseClass();
+    ObjectBaseClass();
+    virtual ~ObjectBaseClass();
 
-    TempSettings *game_settings;
 
     double x,y,w,h;
     double dx,dy;
-    CameraControl::ZPlane zplane;
+    db::ZPlane zplane;
+    std::vector<std::vector<double> > bounding_points;
 
     virtual void step_time();
+    virtual void drawon(SDL_Renderer *renderer, SDL_Rect *destination);
+    virtual bool isMobile(){return false;}
+
+    virtual void bounceoff_static(ObjectBaseClass* staticobject);
 
 };
 

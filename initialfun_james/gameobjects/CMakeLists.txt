@@ -1,8 +1,9 @@
 project(gameobjects)
 
 add_library(gameobjects 
-	objectcontroller.cpp objectcontroller.h
-	objectbase.cpp objectbase.h
+        objectbase.cpp objectbase.h
+        objectcontroller.cpp objectcontroller.h
+        basicwall.cpp basicwall.h
 	)
 target_link_libraries(gameobjects)
 

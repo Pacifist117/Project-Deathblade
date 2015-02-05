@@ -1,80 +1,16 @@
+#ifndef CAMERACONTROL_H
+#define CAMERACONTROL_H
+
+#include "graphicscontrol/gameenums.h"
+#include "graphicscontrol/tempsettings.h"
+#include "graphicscontrol/controlbaseclass.h"
+#include "gameobjects/objectbase.h"
+
 #include <iostream>
 #include <cmath>
 #include <vector>
 #include "SDL.h"
 
-class TempSettings;
-
-/*!
- * \brief The ControlBaseClass class is the template for what every controller class will have.
- *
- * As of Feb 02, 2015 my idea is to have controller classes that control the main processes of the program.
- * For example, the CameraControlClass keeps track of the camera and controls the view of the user. Each of
- * the control classes will inherit ControlBaseClass so it will have access to any settings changed that affect
- * it.
- */
-class ControlBaseClass {
-
-protected:
-
-    /*!
-     * \brief Pointer to the object dealing with basic game settings such as resolution.
-     */
-    TempSettings *game_settings;
-
-public:
-    ControlBaseClass(){}
-    virtual ~ControlBaseClass(){}
-
-    /*!
-     * \brief Recalculates all inner members that are dependent on other settings. This function
-     * should be called for every controller class when a setting is changed.
-     */
-    virtual void update_settings(){}
-};
-
-
-
-/*!
- * \brief The TempSettings class is just a placeholder for the main controller class? or just the
- * game settings class.
- */
-class TempSettings {
-    public:
-
-        unsigned int window_width;
-        unsigned int window_height;
-
-        double mapw;
-        double maph;
-        double mapx;
-        double mapy;
-        double mapmidx;
-        double mapmidy;
-
-        /*!
-         * \brief A list of other controllers that are affected by a change within this.
-         */
-        std::vector<ControlBaseClass*> affectedsettings;
-
-        void addToList(ControlBaseClass* newcontrol){
-            affectedsettings.push_back(newcontrol);
-        }
-
-        void when_a_setting_is_changed(){
-            // change the setting
-            // eg. mapw = 1400
-
-            for (unsigned int i = 0; i < affectedsettings.size(); ++i)
-                affectedsettings[i]->update_settings();
-        }
-
-        TempSettings(){
-        }
-
-        ~TempSettings(){}
-
-};
 
 /*!
  * \brief The CameraControl class moves the camera according to mouse and mouse wheel inputs.
@@ -93,15 +29,6 @@ public:
      */
     CameraControl(TempSettings *gamesettings);
     ~CameraControl();
-
-    /*!
-     * \brief The ZPlane enum labels which depth plane an object is on
-     */
-    enum ZPlane {
-        Floor = 0,  //!< Background plane
-        Player = 1, //!< Battle plane
-        Gui = 2     //!< Fake plane for the GUI (could do something fun?)
-    };
 
     /*!
      * \brief Based on input (usually from the mouse wheel), changes the z-value of the camera.
@@ -131,19 +58,20 @@ public:
                                              double y,
                                              double w,
                                              double h,
-                                             ZPlane zplane);
+                                             db::ZPlane zplane);
+    SDL_Rect calculate_display_destination(ObjectBaseClass* object);
 
     // These functions calculate space coordinates from pixel dimensions
-    double xfrompixel(int pixelX, ZPlane z);
-    double yfrompixel(int pixelY, ZPlane z);
-    double wfrompixel(int pixelW, ZPlane z);
-    double hfrompixel(int pixelH, ZPlane z);
+    double xfrompixel(int pixelX, db::ZPlane z);
+    double yfrompixel(int pixelY, db::ZPlane z);
+    double wfrompixel(int pixelW, db::ZPlane z);
+    double hfrompixel(int pixelH, db::ZPlane z);
 
     // These functions calculate pixel coordinates from space dimensions
-    int pixelfromx(double x, ZPlane z);
-    int pixelfromy(double y, ZPlane z);
-    int pixelfromw(double w, ZPlane z);
-    int pixelfromh(double h, ZPlane z);
+    int pixelfromx(double x, db::ZPlane z);
+    int pixelfromy(double y, db::ZPlane z);
+    int pixelfromw(double w, db::ZPlane z);
+    int pixelfromh(double h, db::ZPlane z);
 
     // inherited functions
     void update_settings();
@@ -154,6 +82,19 @@ public:
     bool mouse_controlling(){ return mouse_control;}
 
 protected:
+
+    /*!
+     * \brief Checks camx and camy versus the max and min of each.
+     *
+     * This calculation is based on max/min_x/y of course, but also
+     * tanfovx/y and x/y_sidebuffer.
+     */
+    void checkcamxy();
+
+    /*!
+     * \brief Pointer to the object dealing with basic game settings such as resolution.
+     */
+    TempSettings *game_settings;
 
     double camx; //!< X world coordinate of camera
     double camy; //!< Y world coordinate of camera
@@ -173,6 +114,8 @@ protected:
     double zoomout_speed;   //!< Sensitivity of mousewheel down: zoom out
     double zoom_friction;   //!< How quickly the camera loses momentum
     bool momentum_on;       //!< Turn momentum off
+    double x_sidebuffer;    //!< Viewable distance left/right of map
+    double y_sidebuffer;    //!< Viewable distance above/below map
 
     double fieldofviewx; //!< Field of view in the x direction (in radians)
     double fieldofviewy; //!< Field of view in the y direction (in radians)
@@ -184,5 +127,8 @@ protected:
 
     double tanfovx; //convenient
     double tanfovy;
-
+    double maxviewx;
+    double maxviewy;
 };
+
+#endif // CAMERACONTROL_H

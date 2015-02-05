@@ -1,15 +1,8 @@
 #include "objectbase.h"
 
-ObjectBaseClass::ObjectBaseClass(TempSettings *gamesettings){
+ObjectBaseClass::ObjectBaseClass(){
 
-    if (gamesettings == NULL){
-        std::cerr << "A null pointer was passed into object base class\n";
-        return;
-    }
-
-    game_settings = gamesettings;
-
-    x = 0; y = 0; zplane = CameraControl::ZPlane::Player;
+    x = 0; y = 0; zplane = db::Player;
     w = 0; h = 0; dx = 0; dy = 0;
 
 }
@@ -21,4 +14,13 @@ ObjectBaseClass::~ObjectBaseClass(){
 void ObjectBaseClass::step_time(){
     x += dx;
     y += dy;
+}
+
+
+void ObjectBaseClass::drawon(SDL_Renderer *renderer, SDL_Rect *destination){
+
+}
+
+void ObjectBaseClass::bounceoff_static(ObjectBaseClass* staticobject){
+
 }

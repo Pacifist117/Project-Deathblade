@@ -1,15 +1,22 @@
-#include <iostream>
-#include "SDL.h"
-#include "SDL_image.h"
+
+#include "graphicscontrol/cameracontrol.h"
+#include "gameobjects/basicwall.h"
 #include "res_path.h"
 
+#include "SDL_image.h"
+#include "SDL2_gfxPrimitives.h"
+#include "SDL.h"
+
+#include <iostream>
 #include <cmath>
-#include "graphicscontrol/cameracontrol.h"
+
 
 double fx = 0;
 double fy = 0;
 double getx();
 double gety();
+
+void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<std::vector<double> > &relpoints);
 
 int main(){
 
@@ -25,12 +32,25 @@ int main(){
 	gamesettings.window_height = 800;
 	CameraControl camera(&gamesettings);
 
-	const double tilew = 0.05;
-	const double tileh = 0.05;
+    const double tilew = 0.5;
+    const double tileh = 0.5;
 	const int tilepw = 50;
 	const int tileph = 50;
     double mousex = gamesettings.mapmidx;
     double mousey = gamesettings.mapmidy;
+
+    BasicWall bottomwall, topwall, leftwall, rightwall;
+    bottomwall.create(0,gamesettings.maph,gamesettings.mapw, 0.1);
+    bottomwall.set_color(120,120,120);
+
+    topwall.create(0,0,gamesettings.mapw, -0.1);
+    topwall.set_color(120,120,120);
+
+    leftwall.create(0,0,-0.1,gamesettings.maph);
+    leftwall.set_color(120,120,120);
+
+    rightwall.create(gamesettings.mapw,0,0.1,gamesettings.maph);
+    rightwall.set_color(120,120,120);
 
 
 // initialize window, renderer, textures
@@ -106,8 +126,8 @@ int main(){
 					camera.mousecontrol_move(event.motion.xrel, event.motion.yrel);
 				}
 				else{
-					mousex = camera.xfrompixel(event.motion.x,CameraControl::ZPlane::Player);
-					mousey = camera.yfrompixel(event.motion.y,CameraControl::ZPlane::Player);
+                    mousex = camera.xfrompixel(event.motion.x,db::Player);
+                    mousey = camera.yfrompixel(event.motion.y,db::Player);
 				}
 			}
 			else if (event.type == SDL_QUIT){
@@ -116,19 +136,27 @@ int main(){
 	
 		}
 
+        SDL_SetRenderDrawColor(renderer, 0,0,0,255);
 		SDL_RenderClear(renderer);
 
 		camera.adjust_zoom(zoomdirection, mousex, mousey);
 		
 		for (double x = gamesettings.mapx; x < gamesettings.mapx+gamesettings.mapw; x += tilew){
 			for (double y = gamesettings.mapy; y < gamesettings.mapy+gamesettings.maph; y += tileh){
-				SDL_Rect dst = camera.calculate_display_destination(x,y,tilew,tileh,CameraControl::ZPlane::Floor);
+                SDL_Rect dst = camera.calculate_display_destination(x,y,tilew,tileh,db::Floor);
 				SDL_RenderCopy(renderer, bgtile_texture, NULL, &dst);
 			}
 		}
 
-		SDL_Rect dst = camera.calculate_display_destination(getx(),gety(),0.05,0.05,CameraControl::ZPlane::Player);
-		SDL_RenderCopy(renderer, character_texture, NULL, &dst);
+
+
+        SDL_Rect dst = camera.calculate_display_destination(getx(),gety(),0.05,0.05,db::Player);
+        SDL_RenderCopy(renderer, character_texture, NULL, &dst);
+
+        drawpolygon(renderer,&camera,bottomwall.x,bottomwall.y,bottomwall.bounding_points);
+        drawpolygon(renderer,&camera,topwall.x,topwall.y,topwall.bounding_points);
+        drawpolygon(renderer,&camera,leftwall.x,leftwall.y,leftwall.bounding_points);
+        drawpolygon(renderer,&camera,rightwall.x,rightwall.y,rightwall.bounding_points);
 
 		SDL_RenderPresent(renderer);
 	}
@@ -164,4 +192,15 @@ double gety(){
         dy -= 2*dy + fy;
 
 	return y;
+}
+
+
+void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<std::vector<double> >& relpoints){
+    std::vector<Sint16> vx; vx.reserve(relpoints.size());
+    std::vector<Sint16> vy; vy.reserve(relpoints.size());
+    for(unsigned int i = 0; i < relpoints.size(); ++i){
+        vx[i] = cam->pixelfromx(x+relpoints[i][0],db::Player);
+        vy[i] = cam->pixelfromy(y+relpoints[i][1],db::Player);
+    }
+    filledPolygonRGBA(renderer,vx.data(),vy.data(),relpoints.size(),100,100,100,255);
 }

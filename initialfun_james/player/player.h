@@ -6,12 +6,15 @@
 class Player : public ObjectBaseClass {
 
 public:
-    Player(TempSettings *gamesettings);
+    Player();
     ~Player();
 
+    double xinput, yinput;
 
     // inherited functions
     void step_time();
+    bool isMobile(){return true;}
+    //bool isPoints(){return true;} // real thing
 };
 
 
