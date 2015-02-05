@@ -1,6 +1,10 @@
 #ifndef CONTROLBASECLASS_H
 #define CONTROLBASECLASS_H
 
+#include <string>
+#include <vector>
+#include <iostream>
+
 /*!
  * \brief The ControlBaseClass class is the template for what every controller class will have.
  *
@@ -20,6 +24,16 @@ public:
      * should be called for every controller class when a setting is changed.
      */
     virtual void update_settings(){}
+
+    /*!
+     * \brief Checks the arguments of the command console to first, see if the command is for the
+     * current class, and second, to parst the commmands. Note it assumes args.size() >= 3
+     * \return True if commands parsed (correct class)
+     */
+    virtual bool parse_arguments(std::vector<std::string> args){}
+
+    static std::ostream* outstream;
 };
+
 
 #endif // CONTROLBASECLASS_H

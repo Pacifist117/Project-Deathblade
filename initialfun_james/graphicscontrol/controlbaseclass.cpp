@@ -3,3 +3,5 @@
 ControlBaseClass::ControlBaseClass()
 {
 }
+
+std::ostream* ControlBaseClass::outstream = &std::cout;
