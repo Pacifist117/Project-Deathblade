@@ -165,11 +165,11 @@ int CameraControl::pixelfromh(double h, db::ZPlane z){
 
 void CameraControl::checkcamxy(){
     if (camx + (camz+planeZs[db::Player])*tanfovx > max_x)
-        camx = max_x - (camz+planeZs[db::Player])*tanfovx;
+        camx = 0.5*(camx + max_x - (camz+planeZs[db::Player])*tanfovx);
     else if (camx - (camz+planeZs[db::Player])*tanfovx < min_x)
-        camx = min_x + (camz+planeZs[db::Player])*tanfovx;
+        camx = 0.5*(camx + min_x + (camz+planeZs[db::Player])*tanfovx);
     if (camy + (camz+planeZs[db::Player])*tanfovy > max_y)
-        camy = max_y - (camz+planeZs[db::Player])*tanfovy;
+        camy = 0.5*(camy + max_y - (camz+planeZs[db::Player])*tanfovy);
     else if (camy - (camz+planeZs[db::Player])*tanfovy < min_y)
-        camy = min_y + (camz+planeZs[db::Player])*tanfovy;
+        camy = 0.5*(camy + min_y + (camz+planeZs[db::Player])*tanfovy);
 }

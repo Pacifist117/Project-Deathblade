@@ -22,8 +22,8 @@ int main(){
 
 	TempSettings gamesettings;
 
-	gamesettings.mapw = 5;
-	gamesettings.maph = 3;
+    gamesettings.mapw = 10;
+    gamesettings.maph = 6;
 	gamesettings.mapx = 0;
 	gamesettings.mapy = 0;
     gamesettings.mapmidx = gamesettings.mapw/2.0;
@@ -176,7 +176,7 @@ double getx(){
 
 	x += dx;
 
-	if (x >= 5 || x <= 0)
+    if (x >= 10 || x <= 0)
         dx -= 2*dx + fx;
 	
 	return x;
@@ -188,7 +188,7 @@ double gety(){
 
 	y += dy;
 
-	if (y >= 3 || y <= 0)
+    if (y >= 6 || y <= 0)
         dy -= 2*dy + fy;
 
 	return y;
