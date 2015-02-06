@@ -8,7 +8,7 @@ ControlBaseClass::ControlBaseClass()
     name = "";
 }
 
-bool ControlBaseClass::change_setting(std::string command)
+void ControlBaseClass::change_setting(std::string command)
 {
     std::vector<std::string> arguments;
     std::stringstream ss(name+" "+command);
@@ -16,7 +16,8 @@ bool ControlBaseClass::change_setting(std::string command)
     while (std::getline(ss,item,' '))
         arguments.push_back(item);
 
-    return parse_arguments(arguments);
+    *outstream << parse_arguments(arguments);
+    return;
 }
 
 std::ostream* ControlBaseClass::outstream = &std::cout;

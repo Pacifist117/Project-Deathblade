@@ -75,7 +75,7 @@ public:
 
     // inherited functions
     void update_settings();
-    bool parse_arguments(std::vector<std::string> args);
+    std::string parse_arguments(std::vector<std::string> args);
 
     // Basic private member manipulation
     void mousecontrol_on(){ mouse_control = true;}

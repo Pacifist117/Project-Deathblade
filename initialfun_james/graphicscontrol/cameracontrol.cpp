@@ -176,159 +176,162 @@ void CameraControl::checkcamxy(){
         camy = 0.5*(camy + min_y + (camz+planeZs[db::Player])*tanfovy);
 }
 
-bool CameraControl::parse_arguments(std::vector<std::string> args){
+std::string CameraControl::parse_arguments(std::vector<std::string> args){
 
-    if (args[0].compare(name) != 0) return false;
+    if (args[0].compare(name) != 0) return "";
+    std::stringstream returnstring;
 
     if (args[1].compare("help") == 0){
-        *outstream << "Possilble camera commands are:\n";
-        *outstream << "   camera help\n";
-        *outstream << "   camera camx <double>\n";
-        *outstream << "   camera camy <double>\n";
-        *outstream << "   camera camz <double>\n";
-        *outstream << "   camera zoomin_speed <double>\n";
-        *outstream << "   camera zoomout_speed <double>\n";
-        *outstream << "   camera zoom_friction <double>\n";
-        *outstream << "   camera momentum_on <true/false>\n";
-        *outstream << "   camera x_sidebuffer <double>\n";
-        *outstream << "   camera y_sidebuffer <double>\n";
-        *outstream << "   camera fieldofvew <double>\n";
-        *outstream << "   camera planeZs <Floor/Player> <double>\n";
-        *outstream << "   camera <command> help\n\n";
+        returnstring << "Possilble camera commands are:\n";
+        returnstring << "   camera help\n";
+        returnstring << "   camera camx <double>\n";
+        returnstring << "   camera camy <double>\n";
+        returnstring << "   camera camz <double>\n";
+        returnstring << "   camera zoomin_speed <double>\n";
+        returnstring << "   camera zoomout_speed <double>\n";
+        returnstring << "   camera zoom_friction <double>\n";
+        returnstring << "   camera momentum_on <true/false>\n";
+        returnstring << "   camera x_sidebuffer <double>\n";
+        returnstring << "   camera y_sidebuffer <double>\n";
+        returnstring << "   camera fieldofvew <double>\n";
+        returnstring << "   camera planeZs <Floor/Player> <double>\n";
+        returnstring << "   camera <command> help\n\n";
     }
     else if (args[1].compare("camx") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera camx <double>\n";
-            *outstream << "      Sets the new camera x position. It is bounded by map width and field of view.\n\n";
+            returnstring << "   camera camx <double>\n";
+            returnstring << "      Sets the new camera x position. It is bounded by map width and field of view.\n\n";
         }
         else{
             camx = atof(args[2].c_str());
             checkcamxy();
-            *outstream << "camx set to " << camx << std::endl;
+            returnstring << "camx set to " << camx << std::endl;
         }
     }
     else if (args[1].compare("camy") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera camy <double>\n";
-            *outstream << "      Sets the new camera y position. It is bounded by map height and field of view.\n\n";
+            returnstring << "   camera camy <double>\n";
+            returnstring << "      Sets the new camera y position. It is bounded by map height and field of view.\n\n";
         }
         else{
             camy = atof(args[2].c_str());
             checkcamxy();
-            *outstream << "camy set to " << camy << std::endl;
+            returnstring << "camy set to " << camy << std::endl;
         }
     }
     else if (args[1].compare("camz") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera camz <double>\n";
-            *outstream << "      Sets the new camera z position. It is bounded by map size and field of view (a pyramid structure above the field.\n\n";
+            returnstring << "   camera camz <double>\n";
+            returnstring << "      Sets the new camera z position. It is bounded by map size and field of view (a pyramid structure above the field.\n\n";
         }
         else{
             camz = atof(args[2].c_str());
-            *outstream << "camz set to " << camz << std::endl;
+            returnstring << "camz set to " << camz << std::endl;
         }
     }
     else if (args[1].compare("zoomin_speed") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera zoomin_speed <double>\n";
-            *outstream << "      Sets the multiplier for the speed of zooming in. Default is 0.05.\n";
+            returnstring << "   camera zoomin_speed <double>\n";
+            returnstring << "      Sets the multiplier for the speed of zooming in. Default is 0.05.\n";
         }
         else{
             zoomin_speed = atof(args[2].c_str());
-            *outstream << "zoomin_speed set to " << zoomin_speed << std::endl;
+            returnstring << "zoomin_speed set to " << zoomin_speed << std::endl;
         }
     }
     else if (args[1].compare("zoomout_speed") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera zoomout_speed <double>\n";
-            *outstream << "      Sets the multiplier for the speed of zooming out. Default is 0.075.\n";
+            returnstring << "   camera zoomout_speed <double>\n";
+            returnstring << "      Sets the multiplier for the speed of zooming out. Default is 0.075.\n";
         }
         else{
             zoomout_speed = atof(args[2].c_str());
-            *outstream << "zoomout_speed set to " << zoomout_speed << std::endl;
+            returnstring << "zoomout_speed set to " << zoomout_speed << std::endl;
         }
     }
     else if (args[1].compare("zoom_friction") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera zoom_friction <double>\n";
-            *outstream << "      Sets the multiplier for the friction in momentum zooming. Default is 0.3.\n";
+            returnstring << "   camera zoom_friction <double>\n";
+            returnstring << "      Sets the multiplier for the friction in momentum zooming. Default is 0.3.\n";
         }
         else{
             zoom_friction = atof(args[2].c_str());
-            *outstream << "zoom_friction set to " << zoom_friction << std::endl;
+            returnstring << "zoom_friction set to " << zoom_friction << std::endl;
         }
     }
     else if (args[1].compare("momentum_on") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera momentum_on <true/false\n";
-            *outstream << "      Turns momentum effect of zooming on/off.\n";
+            returnstring << "   camera momentum_on <true/false\n";
+            returnstring << "      Turns momentum effect of zooming on/off.\n";
         }
         else{
             if (args[2].compare("true") == 0){
                 momentum_on = true;
-                *outstream << "momentum_on set to true\n";
+                returnstring << "momentum_on set to true\n";
             }
             else if (args[2].compare("false") == 0){
                 momentum_on = false;
-                *outstream << "momentum_on set to false\n";
+                returnstring << "momentum_on set to false\n";
             }
         }
     }
     else if (args[1].compare("x_sidebuffer") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera x_sidebuffer <double>\n";
-            *outstream << "      Sets the amount of in-game space the camera can see to the left/right of the map. Default is 0.25.\n";
+            returnstring << "   camera x_sidebuffer <double>\n";
+            returnstring << "      Sets the amount of in-game space the camera can see to the left/right of the map. Default is 0.25.\n";
         }
         else{
             x_sidebuffer = atof(args[2].c_str());
-            *outstream << "x_sidebuffer set to " << x_sidebuffer << std::endl;
+            returnstring << "x_sidebuffer set to " << x_sidebuffer << std::endl;
         }
     }
     else if (args[1].compare("y_sidebuffer") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera y_sidebuffer <double>\n";
-            *outstream << "      Sets the amount of in-game space the camera can see above/below the map. Default is 0.25.\n";
+            returnstring << "   camera y_sidebuffer <double>\n";
+            returnstring << "      Sets the amount of in-game space the camera can see above/below the map. Default is 0.25.\n";
         }
         else{
             y_sidebuffer = atof(args[2].c_str());
-            *outstream << "y_sidebuffer set to " << y_sidebuffer << std::endl;
+            returnstring << "y_sidebuffer set to " << y_sidebuffer << std::endl;
         }
     }
     else if (args[1].compare("fieldofview") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera fieldofvew <double>\n";
-            *outstream << "      Sets the horizontal field of view of the camera (in degrees). Default is 75 degrees.\n";
+            returnstring << "   camera fieldofvew <double>\n";
+            returnstring << "      Sets the horizontal field of view of the camera (in degrees). Default is 75 degrees.\n";
         }
         else{
             fieldofviewx = atof(args[2].c_str());
-            *outstream << "fieldofview set to " << fieldofviewx << std::endl;
+            returnstring << "fieldofview set to " << fieldofviewx << std::endl;
             fieldofviewx = fieldofviewx*3.14156/180.0;
             update_settings();
         }
     }
     else if (args[1].compare("planeZs") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   camera planeZs <Floor/Player> <double>\n";
-            *outstream << "      Sets the z value for the entire plane of Foor/Player. This is used in calculations for zoom. Defaults are 0/0.2.\n";
+            returnstring << "   camera planeZs <Floor/Player> <double>\n";
+            returnstring << "      Sets the z value for the entire plane of Foor/Player. This is used in calculations for zoom. Defaults are 0/0.2.\n";
         }
         else{
-            if (args.size() < 4) return true;
+            if (args.size() < 4) return "Not enough arguments";
             if (args[2].compare("Floor") == 0){
                 planeZs[db::Floor] = atof(args[2].c_str());
                 update_settings();
-                *outstream << "planeZs[Floor] set to " << planeZs[db::Floor] << std::endl;
+                returnstring << "planeZs[Floor] set to " << planeZs[db::Floor] << std::endl;
             }
             else if (args[2].compare("Player") == 0){
                 planeZs[db::Player] = atof(args[2].c_str());
                 update_settings();
-                *outstream << "planeZs[Player] set to " << planeZs[db::Player] << std::endl;
+                returnstring << "planeZs[Player] set to " << planeZs[db::Player] << std::endl;
             }
         }
     }
     else {
-        *outstream << "camera command not parsed correctly\n";
+        returnstring << "camera command not parsed correctly. Try:\n";
+        returnstring << "   camera help\n";
+        returnstring << "   camera <command> help\n\n";
     }
 
-    return true;
+    return returnstring.str();
 }
 

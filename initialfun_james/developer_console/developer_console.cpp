@@ -12,6 +12,7 @@ DeveloperConsoleClass::DeveloperConsoleClass(TempSettings *gamesettings){
 
     name = "console";
     history_maxlength = 100;
+    history_place = 0;
 
 
 
@@ -38,6 +39,8 @@ DeveloperConsoleClass::DeveloperConsoleClass(TempSettings *gamesettings){
 
     // other internal
     current_command = "";
+    history.push_back(current_command);
+    rethistory.push_back("");
     history_texture = NULL;
     input_texture = NULL;
     active = false;
@@ -57,11 +60,13 @@ void DeveloperConsoleClass::update_settings(){
 
 }
 
-void DeveloperConsoleClass::addtohistory(std::string prompt){
+void DeveloperConsoleClass::addtohistory(std::string prompt, std::string result){
 	if (history.size() == history_maxlength){
 		history.pop_back();
+        rethistory.pop_back();
 	}
-	history.insert(history.begin(),prompt);
+    history.insert(history.begin()+1,prompt);
+    rethistory.insert(rethistory.begin()+1,result);
 }
 
 void DeveloperConsoleClass::set_historymaxlength(unsigned int newlength){
@@ -73,7 +78,6 @@ void DeveloperConsoleClass::set_historymaxlength(unsigned int newlength){
 
 bool DeveloperConsoleClass::execute_command(std::string command_and_arguments){
 
-	addtohistory(command_and_arguments);
     std::vector<std::string> arguments;
     std::stringstream ss(command_and_arguments);
     std::string item;
@@ -81,8 +85,11 @@ bool DeveloperConsoleClass::execute_command(std::string command_and_arguments){
         arguments.push_back(item);
 
     for(unsigned int i = 0; i < controllers.size(); ++i){
-        if (controllers[i]->parse_arguments(arguments))
+        std::string ret = controllers[i]->parse_arguments(arguments);
+        if (ret.length() != 0){
+            addtohistory(command_and_arguments, ret);
             return true;
+        }
     }
 
     *outstream << "Invalid controller name in command.\n";
@@ -115,6 +122,7 @@ void DeveloperConsoleClass::drawon(SDL_Renderer *renderer)
 
 void DeveloperConsoleClass::render_text(SDL_Renderer* renderer){
 
+
     if (font == NULL) return;
 
     if(input_texture != NULL){
@@ -143,17 +151,37 @@ void DeveloperConsoleClass::render_text(SDL_Renderer* renderer){
 void DeveloperConsoleClass::addinput(std::string input)
 {
     current_command += input;
+    history_place = 0;
+    history[history_place] = current_command;
 }
 
 void DeveloperConsoleClass::backspace(){
     if (current_command.length() > 0)
         current_command = current_command.substr(0,current_command.length()-1);
+    history_place = 0;
+    history[history_place] = current_command;
 }
 
 void DeveloperConsoleClass::enter(){
     execute_command(current_command);
     current_command = "";
-    addinput("");
+
+    history_place = 0;
+    history[history_place] = current_command;
+}
+
+void DeveloperConsoleClass::goback_inhistory(){
+    ++history_place;
+    if (history_place >= history.size())
+        history_place = history.size()-1;
+    current_command = history[history_place];
+}
+
+void DeveloperConsoleClass::goforward_inhistory(){
+    --history_place;
+    if (history_place >= history.size())
+        history_place = 0;
+    current_command = history[history_place];
 }
 
 void DeveloperConsoleClass::setfont(std::string filename, unsigned int font_size)
@@ -199,22 +227,24 @@ void DeveloperConsoleClass::add_controller(ControlBaseClass *newclass)
     controllers.push_back(newclass);
 }
 
-bool DeveloperConsoleClass::parse_arguments(std::vector<std::string> args){
-    if (args[0].compare(name) != 0) return false;
+std::string DeveloperConsoleClass::parse_arguments(std::vector<std::string> args){
+    if (args[0].compare(name) != 0) return "";
+
+    std::stringstream returnstring;
 
     if (args[1].compare("help") == 0){
-        *outstream << "Possilble console setting commands are:\n";
-        *outstream << "   console help\n";
-        *outstream << "   console <command> help\n\n";
+        returnstring << "Possilble console setting commands are:\n";
+        returnstring << "   console help\n";
+        returnstring << "   console <command> help\n\n";
     }
     else if (args[1].compare("font") == 0){
         if (args[2].compare("help") == 0){
-            *outstream << "   console font <filename>\n";
-            *outstream << "      Sets the new font.\n\n";
+            returnstring << "   console font <filename>\n";
+            returnstring << "      Sets the new font.\n\n";
         }
         else{
             // update font
-            *outstream << "font set to " << args[2] << std::endl;
+            returnstring << "font set to " << args[2] << std::endl;
         }
     }
 
@@ -228,6 +258,6 @@ bool DeveloperConsoleClass::parse_arguments(std::vector<std::string> args){
 //    SDL_Rect position;
 //    SDL_Rect textfield;
 
-    return true;
+    return returnstring.str();
 
 }

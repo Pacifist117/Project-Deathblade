@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 
 /*!
  * \brief The ControlBaseClass class is the template for what every controller class will have.
@@ -30,8 +31,8 @@ public:
      * current class, and second, to parst the commmands. Note it assumes args.size() >= 3
      * \return True if commands parsed (correct class)
      */
-    virtual bool parse_arguments(std::vector<std::string> args){}
-    bool change_setting(std::string command); //!< Splits the command into a vector and passes into parse_arguments
+    virtual std::string parse_arguments(std::vector<std::string> args){}
+    void change_setting(std::string command); //!< Splits the command into a vector and passes into parse_arguments
 
     static std::ostream* outstream;
 

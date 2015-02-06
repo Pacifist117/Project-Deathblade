@@ -115,13 +115,21 @@ int main(){
                         break;
                     case SDLK_BACKSPACE:
                         console.backspace();
-                        console.render_text(renderer);
                         break;
                     case SDLK_RETURN:
                         console.enter();
-                        console.render_text(renderer);
+                        break;
+                    case SDLK_UP:
+                        console.goback_inhistory();
+                        break;
+                    case SDLK_DOWN:
+                        console.goforward_inhistory();
+                        break;
+                    default:
                         break;
                     }
+                    console.render_text(renderer);
+
                 }
                 else if (event.type == SDL_TEXTINPUT && event.text.text[0] != '`'){
                     console.addinput(event.text.text);

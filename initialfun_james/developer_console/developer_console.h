@@ -27,6 +27,8 @@ public:
     void addinput(std::string input);
     void backspace();
     void enter();
+    void goback_inhistory();
+    void goforward_inhistory();
     void setfont(std::string filename, unsigned int font_size);
     void add_controller(ControlBaseClass* newclass);
     void bringup()  { active = true; }
@@ -36,13 +38,14 @@ public:
 
     // virtual functions
     virtual void update_settings();
-    virtual bool parse_arguments(std::vector<std::string> args);
+    virtual std::string parse_arguments(std::vector<std::string> args);
 	
 private:
     std::vector<std::string> history;
+    std::vector<std::string> rethistory;
     unsigned int history_maxlength;
-    unsigned int history_beginning;
-    void addtohistory(std::string prompt);
+    unsigned int history_place;
+    void addtohistory(std::string prompt, std::string result);
 
 
 
