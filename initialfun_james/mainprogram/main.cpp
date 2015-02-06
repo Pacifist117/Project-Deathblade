@@ -1,10 +1,11 @@
 
 #include "graphicscontrol/cameracontrol.h"
+#include "developer_console/developer_console.h"
 #include "gameobjects/basicwall.h"
 #include "res_path.h"
 
 #include "SDL_image.h"
-#include "SDL2_gfxPrimitives.h"
+#include "SDL_ttf.h"
 #include "SDL.h"
 
 #include <iostream>
@@ -20,6 +21,19 @@ void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y,
 
 int main(){
 
+
+    // initialize window, renderer, textures
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
+        std::cerr << "SDL_Init error: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+
+    if (TTF_Init() != 0){
+        std::cerr << "TTF_Init error: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+
 	TempSettings gamesettings;
 
     gamesettings.mapw = 10;
@@ -31,6 +45,9 @@ int main(){
 	gamesettings.window_width = 1300;
 	gamesettings.window_height = 800;
 	CameraControl camera(&gamesettings);
+    DeveloperConsoleClass console(&gamesettings);
+    console.add_controller(&console);
+    console.add_controller(&camera);
 
     const double tilew = 0.5;
     const double tileh = 0.5;
@@ -52,12 +69,6 @@ int main(){
     rightwall.create(gamesettings.mapw,0,0.1,gamesettings.maph);
     rightwall.set_color(120,120,120);
 
-
-// initialize window, renderer, textures
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
-        std::cerr << "SDL_Init error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
 
     SDL_Window* window = SDL_CreateWindow("deathblade_floating", 0, 0, gamesettings.window_width, gamesettings.window_height, SDL_WINDOW_SHOWN);
     if (window == nullptr){
@@ -95,11 +106,39 @@ int main(){
 		int zoomdirection = 0;
 
 		while(SDL_PollEvent(&event)){
+
+            if (console.is_active()){
+                if (event.type == SDL_KEYDOWN){
+                    switch(event.key.keysym.sym){
+                    case SDLK_BACKQUOTE:
+                        console.toggle();
+                        break;
+                    case SDLK_BACKSPACE:
+                        console.backspace();
+                        console.render_text(renderer);
+                        break;
+                    case SDLK_RETURN:
+                        console.enter();
+                        console.render_text(renderer);
+                        break;
+                    }
+                }
+                else if (event.type == SDL_TEXTINPUT && event.text.text[0] != '`'){
+                    console.addinput(event.text.text);
+                    console.render_text(renderer);
+                }
+
+                continue;
+            }
+
+            // if console is not up
 			if (event.type == SDL_KEYDOWN){
 				switch(event.key.keysym.sym){
 					case SDLK_ESCAPE:
 						quitnow = true;
 						break;
+                case SDLK_BACKQUOTE:
+                    console.toggle();
 					default:
 						break;
 				}
@@ -129,10 +168,10 @@ int main(){
                     mousex = camera.xfrompixel(event.motion.x,db::Player);
                     mousey = camera.yfrompixel(event.motion.y,db::Player);
 				}
-			}
+            }
 			else if (event.type == SDL_QUIT){
 				quitnow = true;
-			}
+            }
 	
 		}
 
@@ -157,6 +196,8 @@ int main(){
         drawpolygon(renderer,&camera,topwall.x,topwall.y,topwall.bounding_points);
         drawpolygon(renderer,&camera,leftwall.x,leftwall.y,leftwall.bounding_points);
         drawpolygon(renderer,&camera,rightwall.x,rightwall.y,rightwall.bounding_points);
+
+        if(console.is_active()) console.drawon(renderer);
 
 		SDL_RenderPresent(renderer);
 	}

@@ -2,6 +2,10 @@
 
 BasicWall::BasicWall()
 {
+    color.r = 100;
+    color.g = 100;
+    color.b = 100;
+    color.a = 255;
 }
 BasicWall::~BasicWall()
 {
@@ -28,10 +32,13 @@ void BasicWall::create(double x, double y, double w, double h){
 }
 
 void BasicWall::drawon(SDL_Renderer *renderer, SDL_Rect *destination){
-    SDL_SetRenderDrawColor(renderer, r,g,b,a);
+    SDL_SetRenderDrawColor(renderer, color.r,color.g,color.b,color.a);
     SDL_RenderFillRect(renderer, destination);
 }
 
 void BasicWall::set_color(Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha){
-    r = red; g = green; b = blue; a = alpha;
+    color.r = red;
+    color.g = green;
+    color.b = blue;
+    color.a = alpha;
 }

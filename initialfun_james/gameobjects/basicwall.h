@@ -16,7 +16,7 @@ public:
     void set_color(Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha = 255);
 
 private:
-    Uint8 r,g,b,a;
+    SDL_Color color;
 };
 
 #endif // BASICWALL_H

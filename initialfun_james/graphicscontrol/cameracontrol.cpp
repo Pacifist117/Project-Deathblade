@@ -7,6 +7,8 @@ CameraControl::CameraControl(TempSettings *gamesettings){
 		return;
 	}
 
+    name = "camera";
+
 	planeZs.push_back(0);
     planeZs.push_back(0.2);
 	planeZs.push_back(1);
@@ -176,7 +178,7 @@ void CameraControl::checkcamxy(){
 
 bool CameraControl::parse_arguments(std::vector<std::string> args){
 
-    if (args[0].compare("camera") != 0) return false;
+    if (args[0].compare(name) != 0) return false;
 
     if (args[1].compare("help") == 0){
         *outstream << "Possilble camera commands are:\n";
@@ -322,6 +324,9 @@ bool CameraControl::parse_arguments(std::vector<std::string> args){
                 *outstream << "planeZs[Player] set to " << planeZs[db::Player] << std::endl;
             }
         }
+    }
+    else {
+        *outstream << "camera command not parsed correctly\n";
     }
 
     return true;

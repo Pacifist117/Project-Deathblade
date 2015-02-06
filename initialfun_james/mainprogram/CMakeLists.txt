@@ -9,6 +9,7 @@ target_link_libraries(mainprogram
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_PRIMATIVES_LIBRARY}
     graphicscontrol
+    developer_console
     gameobjects
     /usr/lib/i386-linux-gnu/libSDL2_gfx.so
 )

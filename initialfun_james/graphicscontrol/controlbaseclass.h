@@ -31,8 +31,14 @@ public:
      * \return True if commands parsed (correct class)
      */
     virtual bool parse_arguments(std::vector<std::string> args){}
+    bool change_setting(std::string command); //!< Splits the command into a vector and passes into parse_arguments
 
     static std::ostream* outstream;
+
+    /*!
+     * \brief Contains the name trigger for commands.
+     */
+    std::string name;
 };
 
 
