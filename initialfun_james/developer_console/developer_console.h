@@ -21,7 +21,8 @@ public:
     bool execute_command(std::string command_and_arguments);
 
     void drawon(SDL_Renderer* renderer);
-    void render_text(SDL_Renderer *renderer);
+    void render_current_command(SDL_Renderer *renderer);
+    void render_history(SDL_Renderer *renderer);
 
     // basic private member manipulation
     void addinput(std::string input);
@@ -29,6 +30,9 @@ public:
     void enter();
     void goback_inhistory();
     void goforward_inhistory();
+    bool mouse_grab(bool mousedown, int mousex, int mousey);
+    void handle_mouse(int mousex, int mousey, int relmousex, int relmousey);
+    bool scroll(int input, int mousepx, int mousepy);
     void setfont(std::string filename, unsigned int font_size);
     void add_controller(ControlBaseClass* newclass);
     void bringup()  { active = true; }
@@ -55,7 +59,6 @@ private:
     SDL_Color font_color;
     SDL_Color background_color;
     SDL_Rect position;
-    SDL_Rect textfield;
 
 
     // other internal
@@ -64,6 +67,9 @@ private:
     SDL_Texture *history_texture;
     SDL_Texture *input_texture;
     bool active;
+    bool move_grabbed;
+    bool resize_left,resize_right,resize_top,resize_bottom;
+    int scroll_offset;
 
     std::vector<ControlBaseClass*> controllers;
 

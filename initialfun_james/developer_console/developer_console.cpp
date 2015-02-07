@@ -28,14 +28,10 @@ DeveloperConsoleClass::DeveloperConsoleClass(TempSettings *gamesettings){
     background_color.b = 100;
     background_color.a = 50;
 
-    position.x = 0;
-    position.y = 0;
+    position.x = 50;
+    position.y = 50;
     position.w = game_settings->window_width/2;
     position.h = game_settings->window_height/2;
-    textfield.w = position.w-4;
-    textfield.h = fontsize+3;
-    textfield.x = position.x + 2;
-    textfield.y = position.y + position.h - textfield.h - 2;
 
     // other internal
     current_command = "";
@@ -44,6 +40,13 @@ DeveloperConsoleClass::DeveloperConsoleClass(TempSettings *gamesettings){
     history_texture = NULL;
     input_texture = NULL;
     active = false;
+    move_grabbed = false;
+    resize_left = false;
+    resize_right = false;
+    resize_top = false;
+    resize_bottom = false;
+    scroll_offset = 0;
+
 }
 
 DeveloperConsoleClass::~DeveloperConsoleClass(){
@@ -54,10 +57,6 @@ DeveloperConsoleClass::~DeveloperConsoleClass(){
 void DeveloperConsoleClass::update_settings(){
     position.w = game_settings->window_width;
     position.h = game_settings->window_height;
-    textfield.w = position.w;
-    textfield.x = position.x + 2;
-    textfield.y = position.y + position.h - textfield.h;
-
 }
 
 void DeveloperConsoleClass::addtohistory(std::string prompt, std::string result){
@@ -92,24 +91,43 @@ bool DeveloperConsoleClass::execute_command(std::string command_and_arguments){
         }
     }
 
-    *outstream << "Invalid controller name in command.\n";
-    *outstream << "Type '<controller> help' for more information.\n";
-    *outstream << "Current controllers include: \n";
+    std::stringstream error_result;
+    error_result << "Invalid controller name in command.\n";
+    error_result << "Type '<controller> help' for more information.\n";
+    error_result << "Current controllers include: \n";
     for (unsigned int i = 0; i < controllers.size(); ++i)
-        *outstream << "   " << controllers[i]->name << std::endl;
+        error_result << "   " << controllers[i]->name << std::endl;
+
+    addtohistory(command_and_arguments, error_result.str().c_str());
     return false;
 }
 
 void DeveloperConsoleClass::drawon(SDL_Renderer *renderer)
 {
 
+    SDL_Rect textfield;
+    textfield.w = position.w-4;
+    textfield.h = fontsize+3;
+    textfield.x = position.x + 2;
+    textfield.y = position.y + position.h - textfield.h - 2;
+
+    SDL_Rect topbar;
+    topbar.w = position.w-4;
+    topbar.h = 21;
+    topbar.x = position.x + 2;
+    topbar.y = position.y + position.h - topbar.h - 2;
+    topbar.y = position.y + 2;
+
     // draw the box
     SDL_SetRenderDrawColor(renderer,background_color.r,background_color.g,background_color.b,background_color.a);
     SDL_RenderFillRect(renderer, &position);
     SDL_SetRenderDrawColor(renderer,240,240,240,240);
     SDL_RenderDrawRect(renderer,&textfield);
+    SDL_SetRenderDrawColor(renderer,40,40,40,40);
+    SDL_RenderFillRect(renderer, &topbar);
 
     // write the text
+    render_current_command(renderer);
     if(input_texture != NULL){
         SDL_Rect inputrect;
         SDL_QueryTexture(input_texture, NULL, NULL, &inputrect.w, &inputrect.h);
@@ -118,9 +136,33 @@ void DeveloperConsoleClass::drawon(SDL_Renderer *renderer)
         SDL_RenderCopy(renderer, input_texture, NULL, &inputrect);
     }
 
+    render_history(renderer);
+    if(history_texture != NULL){
+        SDL_Rect inputrect;
+        SDL_QueryTexture(history_texture, NULL, NULL, &inputrect.w, &inputrect.h);
+        inputrect.x = textfield.x+2;
+        inputrect.y = textfield.y-(inputrect.h*0.895+2);
+        SDL_Rect crop;
+        crop.x = 0;
+        crop.w = inputrect.w;
+        crop.h = position.h - textfield.h - topbar.h - 8;
+        crop.y = position.y + topbar.h + 4 - inputrect.y;
+
+        if(inputrect.h <= crop.h){
+            SDL_RenderCopy(renderer, history_texture, NULL, &inputrect);
+        }
+        else{
+            inputrect.y = position.y + topbar.h + 4;
+            inputrect.h = crop.h;
+            if (scroll_offset < 0) scroll_offset = 0;
+            if (scroll_offset > crop.y) scroll_offset = crop.y;
+            crop.y -= scroll_offset;
+            SDL_RenderCopy(renderer, history_texture, &crop, &inputrect);
+        }
+    }
 }
 
-void DeveloperConsoleClass::render_text(SDL_Renderer* renderer){
+void DeveloperConsoleClass::render_current_command(SDL_Renderer* renderer){
 
 
     if (font == NULL) return;
@@ -129,23 +171,58 @@ void DeveloperConsoleClass::render_text(SDL_Renderer* renderer){
         SDL_DestroyTexture(input_texture);
     }
 
-    if(current_command.length() == 0){
-        input_texture = NULL;
-        return;
-    }
-
-    SDL_Surface *input_surface = TTF_RenderText_Blended(font, current_command.c_str(), font_color);
+    std::string commandline = "$ " + current_command;
+    SDL_Surface *input_surface = TTF_RenderText_Solid(font, commandline.c_str(), font_color);
     if (input_surface == NULL){
-        std::cerr << "TTF_RenderText error: " << SDL_GetError() << std::endl;
+        std::cerr << "input_surface TTF_RenderText error: " << SDL_GetError() << std::endl;
         return;
     }
     input_texture = SDL_CreateTextureFromSurface(renderer, input_surface);
     if (input_texture == NULL){
-        std::cerr << "SDL_CreateTextureFromSurface error: " << SDL_GetError() << std::endl;
+        std::cerr << "input_texture SDL_CreateTextureFromSurface error: " << SDL_GetError() << std::endl;
         SDL_FreeSurface(input_surface);
         return;
     }
     SDL_FreeSurface(input_surface);
+}
+
+void DeveloperConsoleClass::render_history(SDL_Renderer *renderer){
+
+    if (font == NULL) return;
+
+    if(history_texture != NULL){
+        SDL_DestroyTexture(history_texture);
+    }
+
+    if(history.size() == 1){
+        // there is only the current command
+        history_texture = NULL;
+        return;
+    }
+
+    std::stringstream sshistory;
+    for(int i = history.size()-1; i > 0; --i){
+        if(history[i].length() == 0) continue;
+        sshistory << "$ " << history[i] << std::endl;
+        sshistory << rethistory[i];
+    }
+
+    SDL_Surface *history_surface = TTF_RenderText_Blended_Wrapped(font, sshistory.str().c_str(), font_color, position.w-8);
+    if (history_surface == NULL){
+        std::cerr << "history_surface TTF_RenderText error: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    history_texture = SDL_CreateTextureFromSurface(renderer, history_surface);
+    if (history_texture == NULL){
+        std::cerr << "history_texture SDL_CreateTextureFromSurface error: " << SDL_GetError() << std::endl;
+        SDL_FreeSurface(history_surface);
+        return;
+    }
+    SDL_FreeSurface(history_surface);
+
+
+
 }
 
 void DeveloperConsoleClass::addinput(std::string input)
@@ -163,6 +240,10 @@ void DeveloperConsoleClass::backspace(){
 }
 
 void DeveloperConsoleClass::enter(){
+    scroll_offset = 0;
+
+    if(current_command.length() == 0) return;
+
     execute_command(current_command);
     current_command = "";
 
@@ -182,6 +263,91 @@ void DeveloperConsoleClass::goforward_inhistory(){
     if (history_place >= history.size())
         history_place = 0;
     current_command = history[history_place];
+}
+
+bool DeveloperConsoleClass::mouse_grab(bool mousedown, int mousex, int mousey){
+
+    move_grabbed = false;
+    resize_left = false;
+    resize_right = false;
+    resize_top = false;
+    resize_bottom = false;
+
+    if (mousedown == false) return false;
+
+    SDL_Rect topbar;
+    topbar.w = position.w-4;
+    topbar.h = 21;
+    topbar.x = position.x + 2;
+    topbar.y = position.y + position.h - topbar.h - 2;
+    topbar.y = position.y + 2;
+    move_grabbed = (mousex >= topbar.x && mousex <= topbar.x+topbar.w &&
+               mousey >= topbar.y && mousey <= topbar.y+topbar.h);
+
+    if (move_grabbed) return true;
+
+    SDL_Rect outer_rect;
+    outer_rect.x = position.x-2;
+    outer_rect.y = position.y-2;
+    outer_rect.w = position.w+4;
+    outer_rect.h = position.h+4;
+
+    bool in_outer = (mousex >= outer_rect.x && mousex <= outer_rect.x+outer_rect.w &&
+                     mousey >= outer_rect.y && mousey <= outer_rect.y+outer_rect.h);
+
+    if (!in_outer) return false;
+
+    SDL_Rect inner_rect;
+    inner_rect.x = position.x+2;
+    inner_rect.y = position.y+2;
+    inner_rect.w = position.w-4;
+    inner_rect.h = position.h-4;
+
+    bool in_inner = (mousex >= inner_rect.x && mousex <= inner_rect.x+inner_rect.w &&
+                     mousey >= inner_rect.y && mousey <= inner_rect.y+inner_rect.h);
+
+    if (in_inner) return true;
+
+    resize_left = (abs((position.x) - (mousex)) <= 2);
+    resize_right = (abs((position.x+position.w) - (mousex)) <= 2);
+    resize_top = (abs((position.y) - (mousey)) <= 2);
+    resize_bottom = (abs((position.y+position.h) - (mousey)) <= 2);
+}
+
+void DeveloperConsoleClass::handle_mouse(int mousex, int mousey, int relmousex, int relmousey){
+
+    if (move_grabbed){
+        position.x = position.x+relmousex;
+        position.y = position.y+relmousey;
+    }
+    if (resize_left){
+        position.x += relmousex;
+        position.w -= relmousex;
+    }
+    else if (resize_right){
+        position.w += relmousex;
+    }
+    if (resize_top){
+        position.y += relmousey;
+        position.h -= relmousey;
+    }
+    else if (resize_bottom){
+        position.h += relmousey;
+    }
+
+    if (position.w < 100) position.w = 100;
+    if (position.h < 3*fontsize) position.h = 3*fontsize;
+}
+
+bool DeveloperConsoleClass::scroll(int input, int mousepx, int mousepy){
+    if (mousepx >= position.x && mousepx <= position.x+position.w &&
+        mousepy >= position.y && mousepy <= position.y+position.h){
+        scroll_offset += fontsize*input/2;
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 void DeveloperConsoleClass::setfont(std::string filename, unsigned int font_size)
@@ -208,8 +374,6 @@ void DeveloperConsoleClass::setfont(std::string filename, unsigned int font_size
     }
 
     fontsize = font_size;
-    textfield.h = fontsize+3;
-    textfield.y = position.y + position.h - textfield.h - 2;
 
     std::string full_filename = baseRes + filename;
     font = TTF_OpenFont(full_filename.c_str(), fontsize);
@@ -256,7 +420,6 @@ std::string DeveloperConsoleClass::parse_arguments(std::vector<std::string> args
 //    SDL_Color font_color;
 //    SDL_Color background_color;
 //    SDL_Rect position;
-//    SDL_Rect textfield;
 
     return returnstring.str();
 

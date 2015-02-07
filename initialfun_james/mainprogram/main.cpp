@@ -55,6 +55,8 @@ int main(){
 	const int tileph = 50;
     double mousex = gamesettings.mapmidx;
     double mousey = gamesettings.mapmidy;
+    int mousepx = gamesettings.window_width/2;
+    int mousepy = gamesettings.window_height/2;
 
     BasicWall bottomwall, topwall, leftwall, rightwall;
     bottomwall.create(0,gamesettings.maph,gamesettings.mapw, 0.1);
@@ -128,12 +130,46 @@ int main(){
                     default:
                         break;
                     }
-                    console.render_text(renderer);
+                    console.render_current_command(renderer);
 
                 }
                 else if (event.type == SDL_TEXTINPUT && event.text.text[0] != '`'){
                     console.addinput(event.text.text);
-                    console.render_text(renderer);
+                    console.render_current_command(renderer);
+                }
+                else if (event.type == SDL_MOUSEBUTTONDOWN){
+                    if (event.button.button == SDL_BUTTON_LEFT){
+                        if(!console.mouse_grab(true, event.button.x, event.button.y))
+                            camera.mousecontrol_on();
+                    }
+                    //if (event.button.button == SDL_BUTTON_RIGHT)
+
+                }
+                else if (event.type == SDL_MOUSEBUTTONUP){
+                    if (event.button.button == SDL_BUTTON_LEFT){
+                        console.mouse_grab(false, -1,-1);
+                        camera.mousecontrol_off();
+                    }
+                }
+                else if (event.type == SDL_MOUSEMOTION){
+                    mousepx = event.motion.x;
+                    mousepy = event.motion.y;
+                    console.handle_mouse(event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
+
+                    if (camera.mouse_controlling()){
+                        camera.mousecontrol_move(event.motion.xrel, event.motion.yrel);
+                    }
+                    else{
+                        mousex = camera.xfrompixel(event.motion.x,db::Player);
+                        mousey = camera.yfrompixel(event.motion.y,db::Player);
+                    }
+                }
+                else if (event.type == SDL_MOUSEWHEEL){
+                    if(!console.scroll(event.wheel.y, mousepx, mousepy))
+                        zoomdirection += event.wheel.y;
+                }
+                else if (event.type == SDL_QUIT){
+                    quitnow = true;
                 }
 
                 continue;
@@ -168,6 +204,8 @@ int main(){
                 zoomdirection += event.wheel.y;
 			}
 			else if (event.type == SDL_MOUSEMOTION){
+                mousepx = event.motion.x;
+                mousepy = event.motion.y;
 
 				if (camera.mouse_controlling()){
 					camera.mousecontrol_move(event.motion.xrel, event.motion.yrel);
