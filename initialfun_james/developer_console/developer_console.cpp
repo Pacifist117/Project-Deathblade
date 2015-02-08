@@ -75,7 +75,7 @@ void DeveloperConsoleClass::set_historymaxlength(unsigned int newlength){
 }
 
 
-bool DeveloperConsoleClass::execute_command(std::string command_and_arguments){
+std::string DeveloperConsoleClass::execute_command(std::string command_and_arguments){
 
     std::vector<std::string> arguments;
     std::stringstream ss(command_and_arguments);
@@ -87,7 +87,7 @@ bool DeveloperConsoleClass::execute_command(std::string command_and_arguments){
         std::string ret = controllers[i]->parse_arguments(arguments);
         if (ret.length() != 0){
             addtohistory(command_and_arguments, ret);
-            return true;
+            return ret;
         }
     }
 
@@ -99,7 +99,7 @@ bool DeveloperConsoleClass::execute_command(std::string command_and_arguments){
         error_result << "   " << controllers[i]->name << std::endl;
 
     addtohistory(command_and_arguments, error_result.str().c_str());
-    return false;
+    return error_result.str();
 }
 
 void DeveloperConsoleClass::drawon(SDL_Renderer *renderer)
