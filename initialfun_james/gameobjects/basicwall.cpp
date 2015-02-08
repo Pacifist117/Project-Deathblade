@@ -29,6 +29,8 @@ void BasicWall::create(double x, double y, double w, double h){
     bounding_points[3][0] = -w/2;
     bounding_points[3][1] =  h/2;
 
+    calculate_square_r();
+
 }
 
 void BasicWall::drawon(SDL_Renderer *renderer, SDL_Rect *destination){

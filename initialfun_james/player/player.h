@@ -10,11 +10,15 @@ public:
     ~Player();
 
     double xinput, yinput;
+    SDL_Texture* character_texture;
+
+    // basic private member manipulation
+    void setTexture(SDL_Texture* player_texture, double width, double height);
 
     // inherited functions
     void step_time();
     bool isMobile(){return true;}
-    //bool isPoints(){return true;} // real thing
+    void drawon(SDL_Renderer* renderer, CameraControl* camera);
 };
 
 

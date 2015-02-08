@@ -4,7 +4,6 @@
 #include "graphicscontrol/gameenums.h"
 #include "graphicscontrol/tempsettings.h"
 #include "graphicscontrol/controlbaseclass.h"
-#include "gameobjects/objectbase.h"
 
 #include <iostream>
 #include <cmath>
@@ -46,6 +45,18 @@ public:
     void mousecontrol_move(int relative_x, int relative_y);
 
     /*!
+     * \brief Moves the camera based on input from wasd/arrows/mouse(not yet). Speed is pan_speed setting.
+     * \param xdirection -1 for left, +1 for right
+     */
+    void pan_leftright(int xdirection);
+
+    /*!
+     * \brief Moves the camera based on input from wasd/arrows/mouse(not yet). Speed is pan_speed setting.
+     * \param xdirection -1 for up, +1 for down
+     */
+    void pan_updown(int ydirection);
+
+    /*!
      * \brief Given a position in space, calculates the pixel destination.
      * \param x X position in space
      * \param y Y position in space
@@ -59,7 +70,16 @@ public:
                                              double w,
                                              double h,
                                              db::ZPlane zplane);
-    SDL_Rect calculate_display_destination(ObjectBaseClass* object);
+    /*!
+     * \brief Uses the pointers to an objects x,y as camx,y inputs.
+     * \param objectx Pointer to the x value of the object to be tracked.
+     * \param objecty Pointer to the y value of the object to be tracked.
+     */
+    void track_object(double* objectx, double* objecty);
+    /*!
+     * \brief Sets tracking_on to false and the x,y pointers to null.
+     */
+    void stop_tracking();
 
     // These functions calculate space coordinates from pixel dimensions
     double xfrompixel(int pixelX, db::ZPlane z);
@@ -81,6 +101,7 @@ public:
     void mousecontrol_on(){ mouse_control = true;}
     void mousecontrol_off(){ mouse_control = false;}
     bool mouse_controlling(){ return mouse_control;}
+    bool is_tracking(){ return tracking_on;}
 
 protected:
 
@@ -101,6 +122,9 @@ protected:
     double camy; //!< Y world coordinate of camera
     double camz; //!< Z world coordinate of camera
 
+    double* xtracking; //!< X world coordinate to track
+    double* ytracking; //!< Y world coordinate to track
+
     double max_x; //!< Max X world coordinate of camera
     double min_x; //!< Min X world coordinate of camera
     double max_y; //!< Max Y world coordinate of camera
@@ -117,6 +141,7 @@ protected:
     bool momentum_on;       //!< Turn momentum off
     double x_sidebuffer;    //!< Viewable distance left/right of map
     double y_sidebuffer;    //!< Viewable distance above/below map
+    double pan_speed;       //!< Speed of panning with wasd/arrows/mouse
 
     double fieldofviewx; //!< Field of view in the x direction (in radians)
     double fieldofviewy; //!< Field of view in the y direction (in radians)
@@ -124,11 +149,13 @@ protected:
     // Other variables used internally.
     std::vector<double> planeZs;        //!< The depths associated with each ZPlane
     std::vector<double> pixelratio;     //!< Pixels per world unit, for each ZPlane
+    double dx,dy,dz;
 
     double tanfovx; //convenient
     double tanfovy;
     double maxviewx;
     double maxviewy;
+    bool tracking_on;
 };
 
 #endif // CAMERACONTROL_H

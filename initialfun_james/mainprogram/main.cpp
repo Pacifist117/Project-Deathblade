@@ -2,6 +2,7 @@
 #include "graphicscontrol/cameracontrol.h"
 #include "developer_console/developer_console.h"
 #include "gameobjects/basicwall.h"
+#include "player/player.h"
 #include "res_path.h"
 
 #include "SDL_image.h"
@@ -69,6 +70,8 @@ int main(){
     rightwall.create(gamesettings.mapw,0,0.1,gamesettings.maph);
     rightwall.set_color(120,120,120);
 
+    Player human;
+
 
     SDL_Window* window = SDL_CreateWindow("deathblade_floating", 0, 0, gamesettings.window_width, gamesettings.window_height, SDL_WINDOW_SHOWN);
     if (window == nullptr){
@@ -99,11 +102,17 @@ int main(){
 	        return 1;
     }
 
+    human.setTexture(character_texture, 0.05, 0.05);
+
     SDL_Event event;	
 	bool quitnow = false;
 	while(!quitnow){
+
+        human.step_time();
 		
 		int zoomdirection = 0;
+        int panxdirection = 0;
+        int panydirection = 0;
 
 		while(SDL_PollEvent(&event)){
 
@@ -176,27 +185,69 @@ int main(){
             // if console is not up
 			if (event.type == SDL_KEYDOWN){
 				switch(event.key.keysym.sym){
-					case SDLK_ESCAPE:
+                case SDLK_ESCAPE:
 						quitnow = true;
 						break;
                 case SDLK_BACKQUOTE:
                     console.toggle();
-					default:
-						break;
+                case SDLK_t:
+                    if (!camera.is_tracking())
+                        camera.track_object(&(human.x), &(human.y));
+                    else
+                        camera.stop_tracking();
+                    break;
+                case SDLK_w:
+                case SDLK_UP:
+                    camera.pan_updown(-1);
+                    break;
+                case SDLK_a:
+                case SDLK_LEFT:
+                    camera.pan_leftright(-1);
+                    break;
+                case SDLK_s:
+                case SDLK_DOWN:
+                    camera.pan_updown(1);
+                    break;
+                case SDLK_d:
+                case SDLK_RIGHT:
+                    camera.pan_leftright(1);
+                    break;
+                default:
+                    break;
 				}
 			}
 			else if (event.type == SDL_KEYUP){
-
+                switch(event.key.keysym.sym){
+                case SDLK_w:
+                case SDLK_UP:
+                    camera.pan_updown(0);
+                    break;
+                case SDLK_a:
+                case SDLK_LEFT:
+                    camera.pan_leftright(0);
+                    break;
+                case SDLK_s:
+                case SDLK_DOWN:
+                    camera.pan_updown(0);
+                    break;
+                case SDLK_d:
+                case SDLK_RIGHT:
+                    camera.pan_leftright(0);
+                    break;
+                default:
+                    break;
+                }
 			}
 			else if (event.type == SDL_MOUSEBUTTONDOWN){
-                if (event.button.button == SDL_BUTTON_LEFT)
+                if (event.button.button == SDL_BUTTON_LEFT){
+                    camera.stop_tracking();
                     camera.mousecontrol_on();
-                //if (event.button.button == SDL_BUTTON_RIGHT)
-
+                }
 			}
 			else if (event.type == SDL_MOUSEBUTTONUP){
-                if (event.button.button == SDL_BUTTON_LEFT)
+                if (event.button.button == SDL_BUTTON_LEFT){
                     camera.mousecontrol_off();
+                }
 			}
 			else if (event.type == SDL_MOUSEWHEEL){
                 zoomdirection += event.wheel.y;
@@ -211,6 +262,14 @@ int main(){
 				else{
                     mousex = camera.xfrompixel(event.motion.x,db::Player);
                     mousey = camera.yfrompixel(event.motion.y,db::Player);
+                    if(mousepx <= 1) camera.pan_leftright(-1);
+                    else if (mousepx >= gamesettings.window_width-1) camera.pan_leftright(1);
+                    else if (mousepx - event.motion.xrel <= 1) camera.pan_leftright(0);
+                    else if (mousepx - event.motion.xrel >= gamesettings.window_width-1) camera.pan_leftright(0);
+                    if(mousepy <= 1) camera.pan_updown(-1);
+                    else if (mousepy >= gamesettings.window_height-1) camera.pan_updown(1);
+                    else if (mousepy - event.motion.yrel <= 1) camera.pan_updown(0);
+                    else if (mousepy - event.motion.yrel >= gamesettings.window_height-1) camera.pan_updown(0);
 				}
             }
 			else if (event.type == SDL_QUIT){
@@ -232,9 +291,7 @@ int main(){
 		}
 
 
-
-        SDL_Rect dst = camera.calculate_display_destination(getx(),gety(),0.05,0.05,db::Player);
-        SDL_RenderCopy(renderer, character_texture, NULL, &dst);
+        human.drawon(renderer, &camera);
 
         drawpolygon(renderer,&camera,bottomwall.x,bottomwall.y,bottomwall.bounding_points);
         drawpolygon(renderer,&camera,topwall.x,topwall.y,topwall.bounding_points);
@@ -253,32 +310,6 @@ int main(){
 
     return 0;
 }
-	
-
-double getx(){
-	static double x = 0.5;
-	static double dx = 0.04;
-
-	x += dx;
-
-    if (x >= 10 || x <= 0)
-        dx -= 2*dx + fx;
-	
-	return x;
-}
-
-double gety(){
-	static double y = 0.3;
-	static double dy = 0.02;
-
-	y += dy;
-
-    if (y >= 6 || y <= 0)
-        dy -= 2*dy + fy;
-
-	return y;
-}
-
 
 void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<std::vector<double> >& relpoints){
     std::vector<Sint16> vx; vx.reserve(relpoints.size());

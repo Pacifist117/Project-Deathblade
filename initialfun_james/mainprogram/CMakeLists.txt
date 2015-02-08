@@ -11,6 +11,7 @@ target_link_libraries(mainprogram
     graphicscontrol
     developer_console
     gameobjects
+    player
     /usr/lib/i386-linux-gnu/libSDL2_gfx.so
 )
 install(TARGETS mainprogram RUNTIME DESTINATION ${BIN_DIR})

@@ -17,9 +17,11 @@ CameraControl::CameraControl(TempSettings *gamesettings){
     zoomout_speed = 0.075;
 	zoom_friction = 0.3;
     momentum_on = true;
-    x_sidebuffer = 0.25;
-    y_sidebuffer = 0.25;
+    x_sidebuffer = 0.5;
+    y_sidebuffer = 0.5;
+    pan_speed = 0.25;
 
+    dx = 0; dy = 0; dz = 0;
     mouse_control = false;
 
     fieldofviewx = 75*3.14156/180.0;
@@ -27,6 +29,8 @@ CameraControl::CameraControl(TempSettings *gamesettings){
     pixelratio.push_back(1000);
     pixelratio.push_back(500);
     pixelratio.push_back(1);
+    xtracking = NULL;
+    ytracking = NULL;
 
 	game_settings = gamesettings;
 	gamesettings->addToList(this);
@@ -67,10 +71,6 @@ void CameraControl::update_settings(){
 
 void CameraControl::adjust_zoom(int input, double mouse_x, double mouse_y){
 
-    static double dx = 0;
-    static double dy = 0;
-    static double dz = 0;
-
     double oldpr = pixelratio[db::Player];
 
     if (input < 0){
@@ -101,12 +101,27 @@ void CameraControl::adjust_zoom(int input, double mouse_x, double mouse_y){
         camy = mouse_y - (oldpr/pixelratio[db::Player])*(mouse_y - camy);
     }
 
+
+    camx += dx;
+    camy += dy;
+
     checkcamxy();
 
 	return;
 }
 
+void CameraControl::pan_leftright(int xdirection){
+    stop_tracking();
+    dx = xdirection*pan_speed;
+}
+
+void CameraControl::pan_updown(int ydirection){
+    stop_tracking();
+    dy = ydirection*pan_speed;
+}
+
 void CameraControl::mousecontrol_move(int relative_x, int relative_y){
+    stop_tracking();
     camx = camx - wfrompixel(relative_x, db::Player);
     camy = camy - hfrompixel(relative_y, db::Player);
     checkcamxy();
@@ -126,14 +141,16 @@ SDL_Rect CameraControl::calculate_display_destination(  double x,
     return dst;
 }
 
-SDL_Rect CameraControl::calculate_display_destination( ObjectBaseClass* object){
+void CameraControl::track_object(double* objectx, double* objecty){
+    xtracking = objectx;
+    ytracking = objecty;
+    tracking_on = true;
+}
 
-    SDL_Rect dst;
-    dst.x = pixelfromx(object->x,object->zplane);
-    dst.y = pixelfromy(object->y,object->zplane);
-    dst.w = pixelfromw(object->w,object->zplane);
-    dst.h = pixelfromh(object->h,object->zplane);
-    return dst;
+void CameraControl::stop_tracking(){
+    xtracking = NULL;
+    ytracking = NULL;
+    tracking_on = false;
 }
 
 double CameraControl::xfrompixel(int pixelX, db::ZPlane z){
@@ -169,14 +186,21 @@ int CameraControl::pixelfromh(double h, db::ZPlane z){
 }
 
 void CameraControl::checkcamxy(){
-    if (camx + (camz-planeZs[db::Player])*tanfovx > max_x)
-        camx = 0.5*(camx + max_x - (camz-planeZs[db::Player])*tanfovx);
-    else if (camx - (camz-planeZs[db::Player])*tanfovx < min_x)
-        camx = 0.5*(camx + min_x + (camz-planeZs[db::Player])*tanfovx);
-    if (camy + (camz-planeZs[db::Player])*tanfovy > max_y)
-        camy = 0.5*(camy + max_y - (camz-planeZs[db::Player])*tanfovy);
-    else if (camy - (camz-planeZs[db::Player])*tanfovy < min_y)
-        camy = 0.5*(camy + min_y + (camz-planeZs[db::Player])*tanfovy);
+
+    if(tracking_on){
+        if (xtracking != NULL) camx = *xtracking;
+        if (ytracking != NULL) camy = *ytracking;
+    }
+    else{
+        if (camx + (camz-planeZs[db::Player])*tanfovx > max_x)
+            camx = 0.5*(camx + max_x - (camz-planeZs[db::Player])*tanfovx);
+        else if (camx - (camz-planeZs[db::Player])*tanfovx < min_x)
+            camx = 0.5*(camx + min_x + (camz-planeZs[db::Player])*tanfovx);
+        if (camy + (camz-planeZs[db::Player])*tanfovy > max_y)
+            camy = 0.5*(camy + max_y - (camz-planeZs[db::Player])*tanfovy);
+        else if (camy - (camz-planeZs[db::Player])*tanfovy < min_y)
+            camy = 0.5*(camy + min_y + (camz-planeZs[db::Player])*tanfovy);
+    }
 }
 
 std::string CameraControl::parse_arguments(std::vector<std::string> args){
@@ -196,6 +220,7 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         returnstring << "   camera momentum_on <true/false>\n";
         returnstring << "   camera x_sidebuffer <double>\n";
         returnstring << "   camera y_sidebuffer <double>\n";
+        returnstring << "   camera pan_speed <double>\n";
         returnstring << "   camera fieldofvew <double>\n";
         returnstring << "   camera planeZs <Floor/Player> <double>\n";
         returnstring << "   camera <command> ?\n\n";
@@ -324,6 +349,19 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         else{
             y_sidebuffer = atof(args[2].c_str());
             returnstring << "y_sidebuffer set to " << y_sidebuffer << std::endl;
+        }
+    }
+    else if (args[1].compare("pan_speed") == 0){
+        if (args[2].compare("help") == 0){
+            returnstring << "   camera pan_speed <double>\n";
+            returnstring << "      Sets speed of panning by user input. Default is 0.25.\n";
+        }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera pan_speed " << pan_speed << std::endl;
+        }
+        else{
+            pan_speed = atof(args[2].c_str());
+            returnstring << "pan_speed set to " << pan_speed << std::endl;
         }
     }
     else if (args[1].compare("fieldofview") == 0){
