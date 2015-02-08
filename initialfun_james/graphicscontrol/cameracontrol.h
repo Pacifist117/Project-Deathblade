@@ -124,7 +124,6 @@ protected:
     // Other variables used internally.
     std::vector<double> planeZs;        //!< The depths associated with each ZPlane
     std::vector<double> pixelratio;     //!< Pixels per world unit, for each ZPlane
-    std::vector<double> max_pixelratio; //!< Maximum pixel ratios for each ZPlane
 
     double tanfovx; //convenient
     double tanfovy;

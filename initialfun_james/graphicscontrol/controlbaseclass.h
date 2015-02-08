@@ -31,7 +31,7 @@ public:
      * current class, and second, to parst the commmands. Note it assumes args.size() >= 3
      * \return True if commands parsed (correct class)
      */
-    virtual std::string parse_arguments(std::vector<std::string> args){}
+    virtual std::string parse_arguments(std::vector<std::string> args){return args[0];}
     void change_setting(std::string command); //!< Splits the command into a vector and passes into parse_arguments
 
     static std::ostream* outstream;

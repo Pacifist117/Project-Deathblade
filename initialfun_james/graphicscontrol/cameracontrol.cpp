@@ -10,7 +10,7 @@ CameraControl::CameraControl(TempSettings *gamesettings){
     name = "camera";
 
 	planeZs.push_back(0);
-    planeZs.push_back(0.2);
+    planeZs.push_back(10);
 	planeZs.push_back(1);
 
     zoomin_speed = 0.05;
@@ -22,20 +22,16 @@ CameraControl::CameraControl(TempSettings *gamesettings){
 
     mouse_control = false;
 
-	fieldofviewx = 75*3.14156/180.0;
-	tanfovx = tan(fieldofviewx/2.0);
-
-	max_pixelratio.push_back( 1000);
-    max_pixelratio.push_back( max_pixelratio[db::Floor] + planeZs[db::Player]*2*tanfovx);
-	max_pixelratio.push_back( 1 );
+    fieldofviewx = 75*3.14156/180.0;
+    tanfovx = tan(fieldofviewx/2.0);
+    pixelratio.push_back(1000);
+    pixelratio.push_back(500);
+    pixelratio.push_back(1);
 
 	game_settings = gamesettings;
 	gamesettings->addToList(this);
 	update_settings();
 
-    pixelratio.push_back(max_pixelratio[db::Floor]);
-    pixelratio.push_back(max_pixelratio[db::Player]);
-    pixelratio.push_back(max_pixelratio[db::Gui]);
 
 }
 
@@ -46,7 +42,7 @@ void CameraControl::update_settings(){
 
     tanfovx = tan(fieldofviewx/2.0);
 	fieldofviewy = 2*atan(game_settings->window_height*tanfovx/game_settings->window_width);
-	tanfovy = tan(fieldofviewy/2.0);
+    tanfovy = tan(fieldofviewy/2.0);
 
 	camx = game_settings->mapx + game_settings->mapw/2.0;
 	camy = game_settings->mapy + game_settings->maph/2.0;
@@ -56,9 +52,16 @@ void CameraControl::update_settings(){
     max_y = game_settings->mapy + game_settings->maph + y_sidebuffer;
     min_y = game_settings->mapy - y_sidebuffer;
 
-    min_z = game_settings->window_width/(2.0*max_pixelratio[db::Player]*tanfovx);
-    max_z = game_settings->mapw/(2.0*tanfovx) + planeZs[db::Player];
+
+    min_z = 1.5 + planeZs[db::Player];
+    max_z = (max_x-camx)/tanfovx + planeZs[db::Player];
+    //max_z = game_settings->mapw/(2.0*tanfovx) + planeZs[db::Player];
 	camz = max_z;
+
+
+    pixelratio[db::Floor] = game_settings->window_width/(2.0*(camz - planeZs[db::Floor])*tanfovx);
+    pixelratio[db::Player] = game_settings->window_width/(2.0*(camz - planeZs[db::Player])*tanfovx);
+    pixelratio[db::Gui] = 1;
 	
 }
 
@@ -90,8 +93,8 @@ void CameraControl::adjust_zoom(int input, double mouse_x, double mouse_y){
     if (camz > max_z) camz = max_z;
 	if (camz < min_z) camz = min_z;
 
-    pixelratio[db::Floor] = game_settings->window_width/(2.0*camz - planeZs[db::Floor]*tanfovx);
-    pixelratio[db::Player] = game_settings->window_width/(2.0*camz - planeZs[db::Player]*tanfovx);
+    pixelratio[db::Floor] = game_settings->window_width/(2.0*(camz - planeZs[db::Floor])*tanfovx);
+    pixelratio[db::Player] = game_settings->window_width/(2.0*(camz - planeZs[db::Player])*tanfovx);
 
     if(input >= 0 && pixelratio[db::Player] != oldpr){
         camx = mouse_x - (oldpr/pixelratio[db::Player])*(mouse_x - camx);
@@ -166,14 +169,14 @@ int CameraControl::pixelfromh(double h, db::ZPlane z){
 }
 
 void CameraControl::checkcamxy(){
-    if (camx + (camz+planeZs[db::Player])*tanfovx > max_x)
-        camx = 0.5*(camx + max_x - (camz+planeZs[db::Player])*tanfovx);
-    else if (camx - (camz+planeZs[db::Player])*tanfovx < min_x)
-        camx = 0.5*(camx + min_x + (camz+planeZs[db::Player])*tanfovx);
-    if (camy + (camz+planeZs[db::Player])*tanfovy > max_y)
-        camy = 0.5*(camy + max_y - (camz+planeZs[db::Player])*tanfovy);
-    else if (camy - (camz+planeZs[db::Player])*tanfovy < min_y)
-        camy = 0.5*(camy + min_y + (camz+planeZs[db::Player])*tanfovy);
+    if (camx + (camz-planeZs[db::Player])*tanfovx > max_x)
+        camx = 0.5*(camx + max_x - (camz-planeZs[db::Player])*tanfovx);
+    else if (camx - (camz-planeZs[db::Player])*tanfovx < min_x)
+        camx = 0.5*(camx + min_x + (camz-planeZs[db::Player])*tanfovx);
+    if (camy + (camz-planeZs[db::Player])*tanfovy > max_y)
+        camy = 0.5*(camy + max_y - (camz-planeZs[db::Player])*tanfovy);
+    else if (camy - (camz-planeZs[db::Player])*tanfovy < min_y)
+        camy = 0.5*(camy + min_y + (camz-planeZs[db::Player])*tanfovy);
 }
 
 std::string CameraControl::parse_arguments(std::vector<std::string> args){
@@ -195,12 +198,16 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         returnstring << "   camera y_sidebuffer <double>\n";
         returnstring << "   camera fieldofvew <double>\n";
         returnstring << "   camera planeZs <Floor/Player> <double>\n";
+        returnstring << "   camera <command> ?\n\n";
         returnstring << "   camera <command> help\n\n";
     }
     else if (args[1].compare("camx") == 0){
         if (args[2].compare("help") == 0){
             returnstring << "   camera camx <double>\n";
             returnstring << "      Sets the new camera x position. It is bounded by map width and field of view.\n\n";
+        }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera camx " << camx << std::endl;
         }
         else{
             camx = atof(args[2].c_str());
@@ -213,6 +220,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             returnstring << "   camera camy <double>\n";
             returnstring << "      Sets the new camera y position. It is bounded by map height and field of view.\n\n";
         }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera camy " << camy << std::endl;
+        }
         else{
             camy = atof(args[2].c_str());
             checkcamxy();
@@ -224,6 +234,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             returnstring << "   camera camz <double>\n";
             returnstring << "      Sets the new camera z position. It is bounded by map size and field of view (a pyramid structure above the field.\n\n";
         }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera camz " << camz << std::endl;
+        }
         else{
             camz = atof(args[2].c_str());
             returnstring << "camz set to " << camz << std::endl;
@@ -233,6 +246,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         if (args[2].compare("help") == 0){
             returnstring << "   camera zoomin_speed <double>\n";
             returnstring << "      Sets the multiplier for the speed of zooming in. Default is 0.05.\n";
+        }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera zoomin_speed " << zoomin_speed << std::endl;
         }
         else{
             zoomin_speed = atof(args[2].c_str());
@@ -244,6 +260,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             returnstring << "   camera zoomout_speed <double>\n";
             returnstring << "      Sets the multiplier for the speed of zooming out. Default is 0.075.\n";
         }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera zoomout_speed " << zoomout_speed << std::endl;
+        }
         else{
             zoomout_speed = atof(args[2].c_str());
             returnstring << "zoomout_speed set to " << zoomout_speed << std::endl;
@@ -254,6 +273,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             returnstring << "   camera zoom_friction <double>\n";
             returnstring << "      Sets the multiplier for the friction in momentum zooming. Default is 0.3.\n";
         }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera zoom_friction " << zoom_friction << std::endl;
+        }
         else{
             zoom_friction = atof(args[2].c_str());
             returnstring << "zoom_friction set to " << zoom_friction << std::endl;
@@ -263,6 +285,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         if (args[2].compare("help") == 0){
             returnstring << "   camera momentum_on <true/false\n";
             returnstring << "      Turns momentum effect of zooming on/off.\n";
+        }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera momentum_on " << (momentum_on ? "true" : "false") << std::endl;
         }
         else{
             if (args[2].compare("true") == 0){
@@ -280,6 +305,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             returnstring << "   camera x_sidebuffer <double>\n";
             returnstring << "      Sets the amount of in-game space the camera can see to the left/right of the map. Default is 0.25.\n";
         }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera x_sidebuffer " << x_sidebuffer << std::endl;
+        }
         else{
             x_sidebuffer = atof(args[2].c_str());
             returnstring << "x_sidebuffer set to " << x_sidebuffer << std::endl;
@@ -290,6 +318,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             returnstring << "   camera y_sidebuffer <double>\n";
             returnstring << "      Sets the amount of in-game space the camera can see above/below the map. Default is 0.25.\n";
         }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera y_sidebuffer " << y_sidebuffer << std::endl;
+        }
         else{
             y_sidebuffer = atof(args[2].c_str());
             returnstring << "y_sidebuffer set to " << y_sidebuffer << std::endl;
@@ -299,6 +330,9 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         if (args[2].compare("help") == 0){
             returnstring << "   camera fieldofvew <double>\n";
             returnstring << "      Sets the horizontal field of view of the camera (in degrees). Default is 75 degrees.\n";
+        }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera fieldofview " << (int)(fieldofviewx*180/3.14156) << std::endl;
         }
         else{
             fieldofviewx = atof(args[2].c_str());
@@ -315,14 +349,24 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         else{
             if (args.size() < 4) return "Not enough arguments";
             if (args[2].compare("Floor") == 0){
-                planeZs[db::Floor] = atof(args[2].c_str());
-                update_settings();
-                returnstring << "planeZs[Floor] set to " << planeZs[db::Floor] << std::endl;
+                if(args[3].compare("?") == 0){
+                    returnstring << "camera planeZs[Floor] " << planeZs[db::Floor] << std::endl;
+                }
+                else{
+                    planeZs[db::Floor] = atof(args[3].c_str());
+                    update_settings();
+                    returnstring << "planeZs[Floor] set to " << planeZs[db::Floor] << std::endl;
+                }
             }
             else if (args[2].compare("Player") == 0){
-                planeZs[db::Player] = atof(args[2].c_str());
-                update_settings();
-                returnstring << "planeZs[Player] set to " << planeZs[db::Player] << std::endl;
+                if(args[3].compare("?") == 0){
+                    returnstring << "camera planeZs[Player] " << planeZs[db::Player] << std::endl;
+                }
+                else{
+                    planeZs[db::Player] = atof(args[3].c_str());
+                    update_settings();
+                    returnstring << "planeZs[Player] set to " << planeZs[db::Player] << std::endl;
+                }
             }
         }
     }

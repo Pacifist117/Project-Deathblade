@@ -51,8 +51,6 @@ int main(){
 
     const double tilew = 0.5;
     const double tileh = 0.5;
-	const int tilepw = 50;
-	const int tileph = 50;
     double mousex = gamesettings.mapmidx;
     double mousey = gamesettings.mapmidy;
     int mousepx = gamesettings.window_width/2;
