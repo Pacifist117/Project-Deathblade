@@ -145,6 +145,7 @@ protected:
 
     double fieldofviewx; //!< Field of view in the x direction (in radians)
     double fieldofviewy; //!< Field of view in the y direction (in radians)
+    double camyaw;       //!< Yaw of of the camera (rotate view) (in radians)
 
     // Other variables used internally.
     std::vector<double> planeZs;        //!< The depths associated with each ZPlane

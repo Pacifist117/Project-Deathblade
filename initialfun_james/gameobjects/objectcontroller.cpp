@@ -128,22 +128,18 @@ void ObjectController::two_mobiles_bounce(ObjectBaseClass* a, ObjectBaseClass* b
     if(cg_diff.dot(mtv) < 0) mtv = mtv*-1;
 
     // first uncollide
-    b->translate(mtv.x/2,mtv.y/2);
-    a->translate(-mtv.x/2,-mtv.y/2);
+    b->translate(-(a->mass/(a->mass+b->mass))*mtv.x/2,-(a->mass/(a->mass+b->mass))*mtv.y/2);
+    a->translate((b->mass/(a->mass+b->mass))*mtv.x/2,(b->mass/(a->mass+b->mass))*mtv.y/2);
 
     double elasticity = a->elasticity*b->elasticity;
     double friction = a->friction*b->elasticity;
-    double vdotmtv = a->dx*mtv_unit.x + b->dy*mtv_unit.y;
+    double vdotmtv = (a->dx-b->dx)*mtv_unit.x + (a->dy-b->dy)*mtv_unit.y;
 
+    a->dx = friction*a->dx - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.x;
+    a->dy = friction*a->dy - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.y;
 
-    a->dx = friction*a->dx - (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv.x;
-    a->dy = friction*a->dy - (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv.y;
-
-    a->dx = friction*a->dx - (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv.x;
-    a->dy = friction*a->dy - (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv.y;
-
-    b->dx = friction*b->dx - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv.x;
-    b->dy = friction*b->dy - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv.y;
+    b->dx = friction*b->dx + (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.x;
+    b->dy = friction*b->dy + (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.y;
 }
 
 

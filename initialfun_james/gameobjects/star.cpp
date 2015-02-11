@@ -4,6 +4,7 @@ Star::Star(){
     star_texture = NULL;
     texturewidth = 0;
     textureheight = 0;
+    mass = 10000;
 }
 
 Star::~Star(){
@@ -22,6 +23,11 @@ void Star::setTexture(SDL_Texture* star_texture, double width, double height){
     bounding_points.push_back(vec2d(x-width/2.0,y+height/2.0));
 
     organize_points();
+}
+
+void Star::step_time()
+{
+    ObjectBaseClass::step_time();
 }
 
 

@@ -44,6 +44,7 @@ CameraControl::~CameraControl(){
 
 void CameraControl::update_settings(){
 
+    camyaw = 0;
     tanfovx = tan(fieldofviewx/2.0);
 	fieldofviewy = 2*atan(game_settings->window_height*tanfovx/game_settings->window_width);
     tanfovy = tan(fieldofviewy/2.0);

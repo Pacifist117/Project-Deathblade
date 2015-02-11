@@ -4,6 +4,7 @@ Player::Player(){
     character_texture = NULL;
     texturewidth = 0;
     textureheight = 0;
+    mass = 150;
 }
 
 Player::~Player(){
