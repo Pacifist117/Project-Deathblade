@@ -11,6 +11,8 @@ public:
 
     double xinput, yinput;
     SDL_Texture* character_texture;
+    double texturewidth;
+    double textureheight;
 
     // basic private member manipulation
     void setTexture(SDL_Texture* player_texture, double width, double height);

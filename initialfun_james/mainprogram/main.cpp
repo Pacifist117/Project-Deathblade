@@ -1,5 +1,6 @@
 
 #include "graphicscontrol/cameracontrol.h"
+#include "gameobjects/objectcontroller.h"
 #include "developer_console/developer_console.h"
 #include "gameobjects/basicwall.h"
 #include "player/player.h"
@@ -12,13 +13,10 @@
 #include <iostream>
 #include <cmath>
 
+const int SCREEN_FPS = 30;
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
-double fx = 0;
-double fy = 0;
-double getx();
-double gety();
-
-void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<std::vector<double> > &relpoints);
+void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<vec2d> &bounding_points);
 
 int main(){
 
@@ -46,6 +44,7 @@ int main(){
 	gamesettings.window_width = 1300;
 	gamesettings.window_height = 800;
 	CameraControl camera(&gamesettings);
+    ObjectController objects;
     DeveloperConsoleClass console(&gamesettings);
     console.add_controller(&console);
     console.add_controller(&camera);
@@ -60,17 +59,22 @@ int main(){
     BasicWall bottomwall, topwall, leftwall, rightwall;
     bottomwall.create(0,gamesettings.maph,gamesettings.mapw, 0.1);
     bottomwall.set_color(120,120,120);
+    objects.add_object(&bottomwall);
 
     topwall.create(0,0,gamesettings.mapw, -0.1);
     topwall.set_color(120,120,120);
+    objects.add_object(&topwall);
 
     leftwall.create(0,0,-0.1,gamesettings.maph);
     leftwall.set_color(120,120,120);
+    objects.add_object(&leftwall);
 
     rightwall.create(gamesettings.mapw,0,0.1,gamesettings.maph);
     rightwall.set_color(120,120,120);
+    objects.add_object(&rightwall);
 
     Player human;
+    objects.add_object(&human);
 
 
     SDL_Window* window = SDL_CreateWindow("deathblade_floating", 0, 0, gamesettings.window_width, gamesettings.window_height, SDL_WINDOW_SHOWN);
@@ -106,13 +110,10 @@ int main(){
 
     SDL_Event event;	
 	bool quitnow = false;
-	while(!quitnow){
-
-        human.step_time();
+    Uint32 fps_lastframe = SDL_GetTicks();
+    while(!quitnow){
 		
-		int zoomdirection = 0;
-        int panxdirection = 0;
-        int panydirection = 0;
+        int zoomdirection = 0;
 
 		while(SDL_PollEvent(&event)){
 
@@ -190,6 +191,7 @@ int main(){
 						break;
                 case SDLK_BACKQUOTE:
                     console.toggle();
+                    break;
                 case SDLK_t:
                     if (!camera.is_tracking())
                         camera.track_object(&(human.x), &(human.y));
@@ -263,13 +265,13 @@ int main(){
                     mousex = camera.xfrompixel(event.motion.x,db::Player);
                     mousey = camera.yfrompixel(event.motion.y,db::Player);
                     if(mousepx <= 1) camera.pan_leftright(-1);
-                    else if (mousepx >= gamesettings.window_width-1) camera.pan_leftright(1);
+                    else if (mousepx >= (int)gamesettings.window_width-1) camera.pan_leftright(1);
                     else if (mousepx - event.motion.xrel <= 1) camera.pan_leftright(0);
-                    else if (mousepx - event.motion.xrel >= gamesettings.window_width-1) camera.pan_leftright(0);
+                    else if (mousepx - event.motion.xrel >= (int)gamesettings.window_width-1) camera.pan_leftright(0);
                     if(mousepy <= 1) camera.pan_updown(-1);
-                    else if (mousepy >= gamesettings.window_height-1) camera.pan_updown(1);
+                    else if (mousepy >= (int)gamesettings.window_height-1) camera.pan_updown(1);
                     else if (mousepy - event.motion.yrel <= 1) camera.pan_updown(0);
-                    else if (mousepy - event.motion.yrel >= gamesettings.window_height-1) camera.pan_updown(0);
+                    else if (mousepy - event.motion.yrel >= (int)gamesettings.window_height-1) camera.pan_updown(0);
 				}
             }
 			else if (event.type == SDL_QUIT){
@@ -277,6 +279,9 @@ int main(){
             }
 	
 		}
+
+
+        objects.step_time();
 
         SDL_SetRenderDrawColor(renderer, 0,0,0,255);
 		SDL_RenderClear(renderer);
@@ -288,7 +293,7 @@ int main(){
                 SDL_Rect dst = camera.calculate_display_destination(x,y,tilew,tileh,db::Floor);
 				SDL_RenderCopy(renderer, bgtile_texture, NULL, &dst);
 			}
-		}
+        }
 
 
         human.drawon(renderer, &camera);
@@ -301,6 +306,12 @@ int main(){
         if(console.is_active()) console.drawon(renderer);
 
 		SDL_RenderPresent(renderer);
+
+        Uint32 fps_newframe = SDL_GetTicks();
+        if((fps_newframe-fps_lastframe) < SCREEN_TICKS_PER_FRAME){
+            SDL_Delay(SCREEN_TICKS_PER_FRAME - (fps_newframe-fps_lastframe));
+        }
+        fps_lastframe = fps_newframe;
 	}
     SDL_DestroyTexture(character_texture);
 	SDL_DestroyTexture(bgtile_texture);
@@ -311,12 +322,12 @@ int main(){
     return 0;
 }
 
-void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<std::vector<double> >& relpoints){
-    std::vector<Sint16> vx; vx.reserve(relpoints.size());
-    std::vector<Sint16> vy; vy.reserve(relpoints.size());
-    for(unsigned int i = 0; i < relpoints.size(); ++i){
-        vx[i] = cam->pixelfromx(x+relpoints[i][0],db::Player);
-        vy[i] = cam->pixelfromy(y+relpoints[i][1],db::Player);
+void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<vec2d>& bounding_points){
+    std::vector<Sint16> vx; vx.resize(bounding_points.size());
+    std::vector<Sint16> vy; vy.resize(bounding_points.size());
+    for(unsigned int i = 0; i < bounding_points.size(); ++i){
+        vx[i] = cam->pixelfromx(bounding_points[i].x,db::Player);
+        vy[i] = cam->pixelfromy(bounding_points[i].y,db::Player);
     }
-    filledPolygonRGBA(renderer,vx.data(),vy.data(),relpoints.size(),100,100,100,255);
+    filledPolygonRGBA(renderer,vx.data(),vy.data(),bounding_points.size(),100,100,100,255);
 }
