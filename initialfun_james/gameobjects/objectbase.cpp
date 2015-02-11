@@ -4,7 +4,7 @@
 
 ObjectBaseClass::ObjectBaseClass(){
 
-    x = 0; y = 0; zplane = db::Player;
+    x = 0; y = 0; th = 0; zplane = db::Player;
     dx = 0; dy = 0; dth = 0;
     mass = 0; elasticity = 1; friction = 1;
     square_r = 0;
@@ -106,6 +106,8 @@ void ObjectBaseClass::translate(double delx, double dely){
 void ObjectBaseClass::rotate(double deltheta){
 
     if(deltheta == 0) return;
+
+    th += deltheta;
 
     double cos_deltheta = cos(deltheta);
     double sin_deltheta = sin(deltheta);

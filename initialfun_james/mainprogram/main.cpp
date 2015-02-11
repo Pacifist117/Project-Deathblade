@@ -3,6 +3,7 @@
 #include "gameobjects/objectcontroller.h"
 #include "developer_console/developer_console.h"
 #include "gameobjects/basicwall.h"
+#include "gameobjects/star.h"
 #include "player/player.h"
 #include "res_path.h"
 
@@ -16,10 +17,19 @@
 const int SCREEN_FPS = 30;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
-void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<vec2d> &bounding_points);
-
 int main(){
 
+
+    TempSettings gamesettings;
+
+    gamesettings.mapw = 10;
+    gamesettings.maph = 6;
+    gamesettings.mapx = 0;
+    gamesettings.mapy = 0;
+    gamesettings.mapmidx = gamesettings.mapw/2.0;
+    gamesettings.mapmidy = gamesettings.maph/2.0;
+    gamesettings.window_width = 1300;
+    gamesettings.window_height = 800;
 
     // initialize window, renderer, textures
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
@@ -33,16 +43,38 @@ int main(){
         return 1;
     }
 
-	TempSettings gamesettings;
+    SDL_Window* window = SDL_CreateWindow("deathblade_floating", 0, 0, gamesettings.window_width, gamesettings.window_height, SDL_WINDOW_SHOWN);
+    if (window == nullptr){
+        std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return 1;
+    }
 
-    gamesettings.mapw = 10;
-    gamesettings.maph = 6;
-	gamesettings.mapx = 0;
-	gamesettings.mapy = 0;
-    gamesettings.mapmidx = gamesettings.mapw/2.0;
-    gamesettings.mapmidy = gamesettings.maph/2.0;
-	gamesettings.window_width = 1300;
-	gamesettings.window_height = 800;
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (renderer == nullptr){
+        std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    std::string resource_path = getResourcePath("");
+    std::string charfile = resource_path + "initialcharacter.png";
+    std::string bgfile = resource_path + "initialbackgroundtile.png";
+    std::string starfile = resource_path + "star.png";
+    SDL_Texture* character_texture = IMG_LoadTexture(renderer, charfile.c_str());
+    SDL_Texture* bgtile_texture = IMG_LoadTexture(renderer, bgfile.c_str());
+    SDL_Texture* star_texture = IMG_LoadTexture(renderer, starfile.c_str());
+    if (character_texture == nullptr || bgtile_texture == nullptr || star_texture == nullptr){
+            std::cerr << "IMG_LoadTexture error: " << SDL_GetError() << std::endl;
+            SDL_DestroyTexture(character_texture);
+            SDL_DestroyTexture(bgtile_texture);
+            SDL_DestroyRenderer(renderer);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+    }
+
+
 	CameraControl camera(&gamesettings);
     ObjectController objects;
     DeveloperConsoleClass console(&gamesettings);
@@ -74,39 +106,45 @@ int main(){
     objects.add_object(&rightwall);
 
     Player human;
+    human.x = 5; human.y = 5;
+    human.dx = -0.025; human.dy = -0.03;
+    human.setTexture(character_texture, 0.05, 0.05);
     objects.add_object(&human);
 
+    // map x [0, 10]
+    // map y [0,  6]
+    // star width 0.256
+    std::vector<vec2d> star_positions = {
+        vec2d(6,4),
+        vec2d(3,4.1),
+        vec2d(9,0.2),
+        vec2d(0.2,5.1),
+        vec2d(4.1,4.1)
+    };
+    std::vector<double> star_thetas = {
+        0,
+        45,
+        15,
+        60,
+        85
+    };
 
-    SDL_Window* window = SDL_CreateWindow("deathblade_floating", 0, 0, gamesettings.window_width, gamesettings.window_height, SDL_WINDOW_SHOWN);
-    if (window == nullptr){
-        std::cerr << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
+    std::vector<Star*> star_field;
+    for(int i = 0; i < star_positions.size(); ++i){
+        Star* newstar = new Star();
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (renderer == nullptr){
-        std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-	std::string resource_path = getResourcePath("");
-    std::string charfile = resource_path + "initialcharacter.png";
-    std::string bgfile = resource_path + "initialbackgroundtile.png";
-    SDL_Texture* character_texture = IMG_LoadTexture(renderer, charfile.c_str());
-    SDL_Texture* bgtile_texture = IMG_LoadTexture(renderer, bgfile.c_str());
-    if (character_texture == nullptr || bgtile_texture == nullptr){
-	        std::cerr << "IMG_LoadTexture error: " << SDL_GetError() << std::endl;
-	        SDL_DestroyTexture(character_texture);
-	        SDL_DestroyTexture(bgtile_texture);
-	        SDL_DestroyRenderer(renderer);
-	        SDL_DestroyWindow(window);
-	        SDL_Quit();
-	        return 1;
-    }
+        newstar->x = star_positions[i].x;
+        newstar->y = star_positions[i].y;
+        newstar->setTexture(star_texture, 0.256, 0.256);
 
-    human.setTexture(character_texture, 0.05, 0.05);
+        if(i < star_thetas.size())
+            newstar->rotate(star_thetas[i]*3.14159265359/180.0);
+
+
+        star_field.push_back(newstar);
+        objects.add_object(star_field[i]);
+
+    }
 
     SDL_Event event;	
 	bool quitnow = false;
@@ -295,14 +333,8 @@ int main(){
 			}
         }
 
-
-        human.drawon(renderer, &camera);
-
-        drawpolygon(renderer,&camera,bottomwall.x,bottomwall.y,bottomwall.bounding_points);
-        drawpolygon(renderer,&camera,topwall.x,topwall.y,topwall.bounding_points);
-        drawpolygon(renderer,&camera,leftwall.x,leftwall.y,leftwall.bounding_points);
-        drawpolygon(renderer,&camera,rightwall.x,rightwall.y,rightwall.bounding_points);
-
+        objects.drawon(renderer, &camera);
+        human.drawon(renderer,&camera);
         if(console.is_active()) console.drawon(renderer);
 
 		SDL_RenderPresent(renderer);
@@ -319,15 +351,8 @@ int main(){
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    return 0;
-}
+    for(unsigned int i = 0; i < star_field.size(); ++i)
+        delete star_field[i];
 
-void drawpolygon(SDL_Renderer* renderer, CameraControl* cam, double x, double y, std::vector<vec2d>& bounding_points){
-    std::vector<Sint16> vx; vx.resize(bounding_points.size());
-    std::vector<Sint16> vy; vy.resize(bounding_points.size());
-    for(unsigned int i = 0; i < bounding_points.size(); ++i){
-        vx[i] = cam->pixelfromx(bounding_points[i].x,db::Player);
-        vy[i] = cam->pixelfromy(bounding_points[i].y,db::Player);
-    }
-    filledPolygonRGBA(renderer,vx.data(),vy.data(),bounding_points.size(),100,100,100,255);
+    return 0;
 }

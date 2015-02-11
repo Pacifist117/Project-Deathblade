@@ -23,9 +23,14 @@ void BasicWall::create(double x, double y, double w, double h){
     organize_points();
 }
 
-void BasicWall::drawon(SDL_Renderer *renderer, SDL_Rect *destination){
-    SDL_SetRenderDrawColor(renderer, color.r,color.g,color.b,color.a);
-    SDL_RenderFillRect(renderer, destination);
+void BasicWall::drawon(SDL_Renderer *renderer, CameraControl* camera){
+    std::vector<Sint16> vx; vx.resize(bounding_points.size());
+    std::vector<Sint16> vy; vy.resize(bounding_points.size());
+    for(unsigned int i = 0; i < bounding_points.size(); ++i){
+        vx[i] = camera->pixelfromx(bounding_points[i].x,db::Player);
+        vy[i] = camera->pixelfromy(bounding_points[i].y,db::Player);
+    }
+    filledPolygonRGBA(renderer,vx.data(),vy.data(),bounding_points.size(),color.r,color.g,color.b,color.a);
 }
 
 void BasicWall::set_color(Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha){

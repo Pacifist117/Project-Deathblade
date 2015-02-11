@@ -17,6 +17,14 @@ void ObjectController::step_time(){
     check_for_collisions();
 }
 
+void ObjectController::drawon(SDL_Renderer *renderer, CameraControl *camera)
+{
+    std::vector<ObjectBaseClass*>::iterator obj;
+    for(obj = objects.begin(); obj != objects.end(); ++obj){
+        (*obj)->drawon(renderer,camera);
+    }
+}
+
 void ObjectController::check_for_collisions(){
     std::vector<ObjectBaseClass*>::iterator object1, object2;
     for (object1 = objects.begin(); object1 != objects.end(); ++object1){

@@ -38,7 +38,7 @@ public:
     virtual ~ObjectBaseClass();
 
 
-    double x,y;
+    double x,y,th;
     double dx,dy,dth;
     double mass, elasticity, friction;
     db::ZPlane zplane;
