@@ -43,8 +43,8 @@ void Player::drawon(SDL_Renderer *renderer, CameraControl *camera){
                 db::Player);
 
     SDL_Point center;
-    center.x = camera->pixelfromx(x,db::Player);
-    center.y = camera->pixelfromy(y,db::Player);
+    center.x = camera->pixelfromx(x,y,db::Player);
+    center.y = camera->pixelfromy(x,y,db::Player);
     SDL_RenderCopyEx(renderer, character_texture, NULL, &dst, th, &center, SDL_FLIP_NONE);
 
 }

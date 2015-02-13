@@ -42,7 +42,7 @@ public:
      * \param relative_x X movement of the mouse in pixels
      * \param relative_y Y movement of the mouse in pixels
      */
-    void mousecontrol_move(int relative_x, int relative_y);
+    void mousecontrol_move(int mouse_x, int mouse_y, int relative_x, int relative_y, bool rotating);
 
     /*!
      * \brief Moves the camera based on input from wasd/arrows/mouse(not yet). Speed is pan_speed setting.
@@ -55,6 +55,8 @@ public:
      * \param xdirection -1 for up, +1 for down
      */
     void pan_updown(int ydirection);
+
+    void rotate_view(double delta_theta);
 
     /*!
      * \brief Given a position in space, calculates the pixel destination.
@@ -82,14 +84,14 @@ public:
     void stop_tracking();
 
     // These functions calculate space coordinates from pixel dimensions
-    double xfrompixel(int pixelX, db::ZPlane z);
-    double yfrompixel(int pixelY, db::ZPlane z);
+    double xfrompixel(int pixelX, int pixelY, db::ZPlane z);
+    double yfrompixel(int pixelX, int pixelY, db::ZPlane z);
     double wfrompixel(int pixelW, db::ZPlane z);
     double hfrompixel(int pixelH, db::ZPlane z);
 
     // These functions calculate pixel coordinates from space dimensions
-    int pixelfromx(double x, db::ZPlane z);
-    int pixelfromy(double y, db::ZPlane z);
+    int pixelfromx(double x, double y, db::ZPlane z);
+    int pixelfromy(double x, double y, db::ZPlane z);
     int pixelfromw(double w, db::ZPlane z);
     int pixelfromh(double h, db::ZPlane z);
 
@@ -113,6 +115,8 @@ protected:
      */
     void checkcamxy();
 
+    void calculate_camera_bounds();
+
     /*!
      * \brief Pointer to the object dealing with basic game settings such as resolution.
      */
@@ -121,6 +125,7 @@ protected:
     double camx; //!< X world coordinate of camera
     double camy; //!< Y world coordinate of camera
     double camz; //!< Z world coordinate of camera
+    double camyaw; //!< Yaw of of the camera (rotate view) (in radians)
 
     double* xtracking; //!< X world coordinate to track
     double* ytracking; //!< Y world coordinate to track
@@ -139,13 +144,11 @@ protected:
     double zoomout_speed;   //!< Sensitivity of mousewheel down: zoom out
     double zoom_friction;   //!< How quickly the camera loses momentum
     bool momentum_on;       //!< Turn momentum off
-    double x_sidebuffer;    //!< Viewable distance left/right of map
-    double y_sidebuffer;    //!< Viewable distance above/below map
+    double sidebuffer;    //!< Viewable distance of map
     double pan_speed;       //!< Speed of panning with wasd/arrows/mouse
 
     double fieldofviewx; //!< Field of view in the x direction (in radians)
     double fieldofviewy; //!< Field of view in the y direction (in radians)
-    double camyaw;       //!< Yaw of of the camera (rotate view) (in radians)
 
     // Other variables used internally.
     std::vector<double> planeZs;        //!< The depths associated with each ZPlane

@@ -22,8 +22,8 @@ int main(){
 
     TempSettings gamesettings;
 
-    gamesettings.mapw = 10;
-    gamesettings.maph = 6;
+    gamesettings.mapw = 6;
+    gamesettings.maph = 10;
     gamesettings.mapx = 0;
     gamesettings.mapy = 0;
     gamesettings.mapmidx = gamesettings.mapw/2.0;
@@ -173,6 +173,7 @@ int main(){
                         console.backspace();
                         break;
                     case SDLK_RETURN:
+                    case SDLK_RETURN2:
                         console.enter();
                         break;
                     case SDLK_UP:
@@ -211,11 +212,11 @@ int main(){
                     console.handle_mouse(event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
 
                     if (camera.mouse_controlling()){
-                        camera.mousecontrol_move(event.motion.xrel, event.motion.yrel);
+                        camera.mousecontrol_move(mousepx, mousepy, event.motion.xrel, event.motion.yrel,SDL_GetModState()==KMOD_LCTRL);
                     }
                     else{
-                        mousex = camera.xfrompixel(event.motion.x,db::Player);
-                        mousey = camera.yfrompixel(event.motion.y,db::Player);
+                        mousex = camera.xfrompixel(event.motion.x, event.motion.y, db::Player);
+                        mousey = camera.yfrompixel(event.motion.x, event.motion.y, db::Player);
                     }
                 }
                 else if (event.type == SDL_MOUSEWHEEL){
@@ -288,7 +289,6 @@ int main(){
 			}
 			else if (event.type == SDL_MOUSEBUTTONDOWN){
                 if (event.button.button == SDL_BUTTON_LEFT){
-                    camera.stop_tracking();
                     camera.mousecontrol_on();
                 }
 			}
@@ -305,11 +305,11 @@ int main(){
                 mousepy = event.motion.y;
 
 				if (camera.mouse_controlling()){
-					camera.mousecontrol_move(event.motion.xrel, event.motion.yrel);
+                    camera.mousecontrol_move(mousepx, mousepy, event.motion.xrel, event.motion.yrel,SDL_GetModState()==KMOD_LCTRL);
 				}
 				else{
-                    mousex = camera.xfrompixel(event.motion.x,db::Player);
-                    mousey = camera.yfrompixel(event.motion.y,db::Player);
+                    mousex = camera.xfrompixel(event.motion.x, event.motion.y, db::Player);
+                    mousey = camera.yfrompixel(event.motion.x, event.motion.y, db::Player);
                     if(mousepx <= 1) camera.pan_leftright(-1);
                     else if (mousepx >= (int)gamesettings.window_width-1) camera.pan_leftright(1);
                     else if (mousepx - event.motion.xrel <= 1) camera.pan_leftright(0);

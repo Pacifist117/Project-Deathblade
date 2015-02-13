@@ -27,8 +27,8 @@ void BasicWall::drawon(SDL_Renderer *renderer, CameraControl* camera){
     std::vector<Sint16> vx; vx.resize(bounding_points.size());
     std::vector<Sint16> vy; vy.resize(bounding_points.size());
     for(unsigned int i = 0; i < bounding_points.size(); ++i){
-        vx[i] = camera->pixelfromx(bounding_points[i].x,db::Player);
-        vy[i] = camera->pixelfromy(bounding_points[i].y,db::Player);
+        vx[i] = camera->pixelfromx(bounding_points[i].x, bounding_points[i].y, db::Player);
+        vy[i] = camera->pixelfromy(bounding_points[i].x, bounding_points[i].y, db::Player);
     }
     filledPolygonRGBA(renderer,vx.data(),vy.data(),bounding_points.size(),color.r,color.g,color.b,color.a);
 }

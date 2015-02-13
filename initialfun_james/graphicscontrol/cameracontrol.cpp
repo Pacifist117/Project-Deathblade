@@ -17,8 +17,7 @@ CameraControl::CameraControl(TempSettings *gamesettings){
     zoomout_speed = 0.075;
 	zoom_friction = 0.3;
     momentum_on = true;
-    x_sidebuffer = 0.5;
-    y_sidebuffer = 0.5;
+    sidebuffer = 0.5;
     pan_speed = 0.25;
 
     dx = 0; dy = 0; dz = 0;
@@ -50,17 +49,10 @@ void CameraControl::update_settings(){
     tanfovy = tan(fieldofviewy/2.0);
 
 	camx = game_settings->mapx + game_settings->mapw/2.0;
-	camy = game_settings->mapy + game_settings->maph/2.0;
+    camy = game_settings->mapy + game_settings->maph/2.0;
 
-    max_x = game_settings->mapx + game_settings->mapw + x_sidebuffer;
-    min_x = game_settings->mapx - x_sidebuffer;
-    max_y = game_settings->mapy + game_settings->maph + y_sidebuffer;
-    min_y = game_settings->mapy - y_sidebuffer;
+    calculate_camera_bounds();
 
-
-    min_z = 1.5 + planeZs[db::Player];
-    max_z = (max_x-camx)/tanfovx + planeZs[db::Player];
-    //max_z = game_settings->mapw/(2.0*tanfovx) + planeZs[db::Player];
 	camz = max_z;
 
 
@@ -121,11 +113,26 @@ void CameraControl::pan_updown(int ydirection){
     dy = ydirection*pan_speed;
 }
 
-void CameraControl::mousecontrol_move(int relative_x, int relative_y){
-    stop_tracking();
-    camx = camx - wfrompixel(relative_x, db::Player);
-    camy = camy - hfrompixel(relative_y, db::Player);
-    checkcamxy();
+void CameraControl::rotate_view(double delta_theta)
+{
+    camyaw += delta_theta;
+    calculate_camera_bounds();
+}
+
+void CameraControl::mousecontrol_move(int mouse_x, int mouse_y, int relative_x, int relative_y, bool rotating){
+    if(rotating){
+        double theta1 = atan2(mouse_y-relative_y-game_settings->window_height/2.0, mouse_x-relative_x-game_settings->window_width/2.0);
+        double theta2 = atan2(mouse_y-game_settings->window_height/2.0, mouse_x-game_settings->window_width/2.0);
+        rotate_view(theta1-theta2);
+    }
+    else{
+        stop_tracking();
+        double dx = wfrompixel(relative_x, db::Player);
+        double dy = hfrompixel(relative_y, db::Player);
+        camx = camx - (dx*cos(camyaw) - dy*sin(camyaw));
+        camy = camy - (dx*sin(camyaw) + dy*cos(camyaw));
+        checkcamxy();
+    }
 }
 
 SDL_Rect CameraControl::calculate_display_destination(  double x,
@@ -135,8 +142,8 @@ SDL_Rect CameraControl::calculate_display_destination(  double x,
                                                         db::ZPlane zplane){
 
     SDL_Rect dst;
-    dst.x = pixelfromx(x,zplane);
-    dst.y = pixelfromy(y,zplane);
+    dst.x = pixelfromx(x,y,zplane);
+    dst.y = pixelfromy(x,y,zplane);
     dst.w = pixelfromw(w,zplane);
     dst.h = pixelfromh(h,zplane);
     return dst;
@@ -154,12 +161,16 @@ void CameraControl::stop_tracking(){
     tracking_on = false;
 }
 
-double CameraControl::xfrompixel(int pixelX, db::ZPlane z){
-	return (pixelX - game_settings->window_width/2.0)/pixelratio[z] + camx;
+double CameraControl::xfrompixel(int pixelX, int pixelY, db::ZPlane z){
+    double dx = (pixelX - game_settings->window_width/2.0)/pixelratio[z];
+    double dy = (pixelY - game_settings->window_height/2.0)/pixelratio[z];
+    return dx*cos(camyaw) - dy*sin(camyaw) + camx;
 }
 
-double CameraControl::yfrompixel(int pixelY, db::ZPlane z){
-	return (pixelY - game_settings->window_height/2.0)/pixelratio[z] + camy;
+double CameraControl::yfrompixel(int pixelX, int pixelY, db::ZPlane z){
+    double dx = (pixelX - game_settings->window_width/2.0)/pixelratio[z];
+    double dy = (pixelY - game_settings->window_height/2.0)/pixelratio[z];
+    return dx*sin(camyaw) + dy*cos(camyaw) + camy;
 }
 
 double CameraControl::wfrompixel(int pixelW, db::ZPlane z){
@@ -170,12 +181,14 @@ double CameraControl::hfrompixel(int pixelH, db::ZPlane z){
 	return pixelH/pixelratio[z];
 }
 
-int CameraControl::pixelfromx(double x, db::ZPlane z){
-	return game_settings->window_width/2.0 + pixelratio[z]*(x - camx);
+int CameraControl::pixelfromx(double x, double y, db::ZPlane z){
+    double dx = (x-camx)*cos(-camyaw) - (y-camy)*sin(-camyaw);
+    return dx*pixelratio[z] + game_settings->window_width/2.0;
 }
 
-int CameraControl::pixelfromy(double y, db::ZPlane z){
-	return game_settings->window_height/2.0 + pixelratio[z]*(y- camy);
+int CameraControl::pixelfromy(double x, double y, db::ZPlane z){
+    double dy = (x-camx)*sin(-camyaw) + (y-camy)*cos(-camyaw);
+    return dy*pixelratio[z] + game_settings->window_height/2.0;
 }
 
 int CameraControl::pixelfromw(double w, db::ZPlane z){
@@ -193,15 +206,104 @@ void CameraControl::checkcamxy(){
         if (ytracking != NULL) camy = *ytracking;
     }
     else{
-        if (camx + (camz-planeZs[db::Player])*tanfovx > max_x)
-            camx = 0.5*(camx + max_x - (camz-planeZs[db::Player])*tanfovx);
-        else if (camx - (camz-planeZs[db::Player])*tanfovx < min_x)
-            camx = 0.5*(camx + min_x + (camz-planeZs[db::Player])*tanfovx);
-        if (camy + (camz-planeZs[db::Player])*tanfovy > max_y)
-            camy = 0.5*(camy + max_y - (camz-planeZs[db::Player])*tanfovy);
-        else if (camy - (camz-planeZs[db::Player])*tanfovy < min_y)
-            camy = 0.5*(camy + min_y + (camz-planeZs[db::Player])*tanfovy);
+
+        double minx = -(camz-planeZs[db::Player])*tanfovx + (camx-game_settings->mapmidx)*cos(-camyaw) - (camy-game_settings->mapmidy)*sin(-camyaw);
+        double miny = -(camz-planeZs[db::Player])*tanfovy + (camx-game_settings->mapmidx)*sin(-camyaw) + (camy-game_settings->mapmidy)*cos(-camyaw);
+        double maxx = (camz-planeZs[db::Player])*tanfovx + (camx-game_settings->mapmidx)*cos(-camyaw) - (camy-game_settings->mapmidy)*sin(-camyaw);
+        double maxy = (camz-planeZs[db::Player])*tanfovy + (camx-game_settings->mapmidx)*sin(-camyaw) + (camy-game_settings->mapmidy)*cos(-camyaw);
+
+
+        if (camx < game_settings->mapx)
+            camx = game_settings->mapx;
+        else if (camx > game_settings->mapx+game_settings->mapw)
+            camx = game_settings->mapx+game_settings->mapw;
+        else if (maxx > max_x){
+            camx -= (maxx-max_x)*cos(-camyaw);
+            camy -= -(maxx-max_x)*sin(-camyaw);
+        }
+        else if (minx < min_x){
+            camx -= (minx-min_x)*cos(-camyaw);
+            camy -= -(minx-min_x)*sin(-camyaw);
+        }
+
+        if (camy < game_settings->mapy)
+            camy = game_settings->mapy;
+        else if (camy > game_settings->mapy+game_settings->maph)
+            camy = game_settings->mapy+game_settings->maph;
+        else if (maxy > max_y){
+            camx -= (maxy-max_y)*sin(-camyaw);
+            camy -= (maxy-max_y)*cos(-camyaw);
+        }
+        else if (miny < min_y){
+            camx -= (miny-min_y)*sin(-camyaw);
+            camy -= (miny-min_y)*cos(-camyaw);
+        }
     }
+}
+
+void CameraControl::calculate_camera_bounds()
+{
+
+    // create map min/max with origin at center
+    double mapmin_x = game_settings->mapx - sidebuffer - game_settings->mapw/2;
+    double mapmax_x = game_settings->mapx + sidebuffer + game_settings->mapw/2;
+    double mapmin_y = game_settings->mapy - sidebuffer - game_settings->maph/2;
+    double mapmax_y = game_settings->mapy + sidebuffer + game_settings->maph/2;
+
+    // find horizontal
+    min_x = mapmin_x*cos(-camyaw) - mapmin_y*sin(-camyaw);
+    max_x = min_x;
+
+    double p = mapmin_x*cos(-camyaw) - mapmax_y*sin(-camyaw);
+    if (p < min_x) min_x = p;
+    else if (p > max_x) max_x = p;
+
+    p = mapmax_x*cos(-camyaw) - mapmax_y*sin(-camyaw);
+    if (p < min_x) min_x = p;
+    else if (p > max_x) max_x = p;
+
+    p = mapmax_x*cos(-camyaw) - mapmin_y*sin(-camyaw);
+    if (p < min_x) min_x = p;
+    else if (p > max_x) max_x = p;
+
+    // find vertical
+    min_y = mapmin_x*sin(-camyaw) + mapmin_y*cos(-camyaw);
+    max_y = min_y;
+
+    p = mapmin_x*sin(-camyaw) + mapmax_y*cos(-camyaw);
+    if (p < min_y) min_y = p;
+    else if (p > max_y) max_y = p;
+
+    p = mapmax_x*sin(-camyaw) + mapmax_y*cos(-camyaw);
+    if (p < min_y) min_y = p;
+    else if (p > max_y) max_y = p;
+
+    p = mapmax_x*sin(-camyaw) + mapmin_y*cos(-camyaw);
+    if (p < min_y) min_y = p;
+    else if (p > max_y) max_y = p;
+
+    // change to be ratio of screen
+    double w = max_x - min_x;
+    double h = max_y - min_y;
+    double R = game_settings->window_width/(1.0*game_settings->window_height);
+    if (R*h > w){
+        double midx = (max_x + min_x)/2;
+        min_x = midx - R*h/2;
+        max_x = midx + R*h/2;
+    }
+    else{
+        double midy = (max_y + min_y)/2;
+        min_y = midy - w/R/2;
+        max_y = midy + w/R/2;
+    }
+
+    double zw = (max_x - min_x)/2/tanfovx;
+    double zh = (max_y - min_y)/2/tanfovy;
+
+    max_z = (zw > zh) ? zw : zh;
+    max_z += planeZs[db::Player];
+    min_z = 1.5 + planeZs[db::Player];
+
 }
 
 std::string CameraControl::parse_arguments(std::vector<std::string> args){
@@ -215,12 +317,12 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         returnstring << "   camera camx <double>\n";
         returnstring << "   camera camy <double>\n";
         returnstring << "   camera camz <double>\n";
+        returnstring << "   camera camyaw <double>\n";
         returnstring << "   camera zoomin_speed <double>\n";
         returnstring << "   camera zoomout_speed <double>\n";
         returnstring << "   camera zoom_friction <double>\n";
         returnstring << "   camera momentum_on <true/false>\n";
-        returnstring << "   camera x_sidebuffer <double>\n";
-        returnstring << "   camera y_sidebuffer <double>\n";
+        returnstring << "   camera sidebuffer <double>\n";
         returnstring << "   camera pan_speed <double>\n";
         returnstring << "   camera fieldofvew <double>\n";
         returnstring << "   camera planeZs <Floor/Player> <double>\n";
@@ -266,6 +368,20 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
         else{
             camz = atof(args[2].c_str());
             returnstring << "camz set to " << camz << std::endl;
+        }
+    }
+    else if (args[1].compare("camyaw") == 0){
+        if (args[2].compare("help") == 0){
+            returnstring << "   camera camyaw <double>\n";
+            returnstring << "      Sets the new camera yaw. This is representative of the rotation of the map. (in degrees)\n\n";
+        }
+        else if (args[2].compare("?") == 0){
+            returnstring << "   camera camyaw " << camyaw*180/3.14159265359 << std::endl;
+        }
+        else{
+            camyaw = 0;
+            rotate_view(atof(args[2].c_str())*3.14159265359/180);
+            returnstring << "camyaw set to " << camyaw*180/3.14159265359 << std::endl;
         }
     }
     else if (args[1].compare("zoomin_speed") == 0){
@@ -326,30 +442,17 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             }
         }
     }
-    else if (args[1].compare("x_sidebuffer") == 0){
+    else if (args[1].compare("sidebuffer") == 0){
         if (args[2].compare("help") == 0){
             returnstring << "   camera x_sidebuffer <double>\n";
-            returnstring << "      Sets the amount of in-game space the camera can see to the left/right of the map. Default is 0.25.\n";
+            returnstring << "      Sets the amount of in-game space the camera can see past the map. Default is 0.5.\n";
         }
         else if (args[2].compare("?") == 0){
-            returnstring << "   camera x_sidebuffer " << x_sidebuffer << std::endl;
+            returnstring << "   camera sidebuffer " << sidebuffer << std::endl;
         }
         else{
-            x_sidebuffer = atof(args[2].c_str());
-            returnstring << "x_sidebuffer set to " << x_sidebuffer << std::endl;
-        }
-    }
-    else if (args[1].compare("y_sidebuffer") == 0){
-        if (args[2].compare("help") == 0){
-            returnstring << "   camera y_sidebuffer <double>\n";
-            returnstring << "      Sets the amount of in-game space the camera can see above/below the map. Default is 0.25.\n";
-        }
-        else if (args[2].compare("?") == 0){
-            returnstring << "   camera y_sidebuffer " << y_sidebuffer << std::endl;
-        }
-        else{
-            y_sidebuffer = atof(args[2].c_str());
-            returnstring << "y_sidebuffer set to " << y_sidebuffer << std::endl;
+            sidebuffer = atof(args[2].c_str());
+            returnstring << "sidebuffer set to " << sidebuffer << std::endl;
         }
     }
     else if (args[1].compare("pan_speed") == 0){
