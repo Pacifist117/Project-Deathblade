@@ -37,10 +37,10 @@ void ObjectController::check_for_collisions(){
             ObjectBaseClass* b = *object2;
 
             // Calculate if possible collision
-            double dx = a->x - b->x;
-            double dy = a->y - b->y;
-            double square_dist = dx*dx + dy*dy;
-            if(square_dist > a->square_r + b->square_r) continue;
+//            double dx = a->x - b->x;
+//            double dy = a->y - b->y;
+//            double square_dist = dx*dx + dy*dy;
+//            if(square_dist > a->square_r + b->square_r) continue;
 
             // Separate Axis Theorem
             vec2d mtv;

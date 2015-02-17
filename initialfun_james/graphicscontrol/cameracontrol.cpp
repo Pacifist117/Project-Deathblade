@@ -142,10 +142,10 @@ SDL_Rect CameraControl::calculate_display_destination(  double x,
                                                         db::ZPlane zplane){
 
     SDL_Rect dst;
-    dst.x = pixelfromx(x,y,zplane);
-    dst.y = pixelfromy(x,y,zplane);
     dst.w = pixelfromw(w,zplane);
     dst.h = pixelfromh(h,zplane);
+    dst.x = pixelfromx(x,y,zplane) - dst.w/2;
+    dst.y = pixelfromy(x,y,zplane) - dst.h/2;
     return dst;
 }
 

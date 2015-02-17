@@ -15,11 +15,6 @@ ObjectBaseClass::~ObjectBaseClass(){
 }
 
 void ObjectBaseClass::step_time(){
-
-    if(!isMobile()) return;
-
-    translate(dx,dy);
-    rotate(dth);
 }
 
 

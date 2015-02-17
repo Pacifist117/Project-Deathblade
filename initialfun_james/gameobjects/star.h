@@ -16,7 +16,7 @@ public:
     double textureheight;
 
     // basic private member manipulation
-    void setTexture(SDL_Texture* player_texture, double width, double height);
+    void setTexture(SDL_Texture* star_texture, double width, double height);
 
     // inherited functions
     void step_time();

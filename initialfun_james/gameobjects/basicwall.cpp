@@ -24,6 +24,7 @@ void BasicWall::create(double x, double y, double w, double h){
 }
 
 void BasicWall::drawon(SDL_Renderer *renderer, CameraControl* camera){
+
     std::vector<Sint16> vx; vx.resize(bounding_points.size());
     std::vector<Sint16> vy; vy.resize(bounding_points.size());
     for(unsigned int i = 0; i < bounding_points.size(); ++i){

@@ -36,15 +36,12 @@ void Player::drawon(SDL_Renderer *renderer, CameraControl *camera){
     if(character_texture == NULL) return;
 
     SDL_Rect dst = camera->calculate_display_destination(
-                x-texturewidth/2.0,
-                y-textureheight/2.0,
+                x,
+                y,
                 texturewidth,
                 textureheight,
-                db::Player);
+                zplane);
 
-    SDL_Point center;
-    center.x = camera->pixelfromx(x,y,db::Player);
-    center.y = camera->pixelfromy(x,y,db::Player);
-    SDL_RenderCopyEx(renderer, character_texture, NULL, &dst, th, &center, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, character_texture, NULL, &dst, (th-camera->camyaw)*180.0/3.14159265359, NULL, SDL_FLIP_NONE);
 
 }

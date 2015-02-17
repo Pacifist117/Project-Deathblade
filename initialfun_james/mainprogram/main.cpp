@@ -3,6 +3,7 @@
 #include "gameobjects/objectcontroller.h"
 #include "developer_console/developer_console.h"
 #include "gameobjects/basicwall.h"
+#include "gameobjects/texturewall.h"
 #include "gameobjects/star.h"
 #include "player/player.h"
 #include "res_path.h"
@@ -14,7 +15,7 @@
 #include <iostream>
 #include <cmath>
 
-const int SCREEN_FPS = 30;
+const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 int main(){
@@ -22,8 +23,8 @@ int main(){
 
     TempSettings gamesettings;
 
-    gamesettings.mapw = 6;
-    gamesettings.maph = 10;
+    gamesettings.mapw = 10;
+    gamesettings.maph = 6;
     gamesettings.mapx = 0;
     gamesettings.mapy = 0;
     gamesettings.mapmidx = gamesettings.mapw/2.0;
@@ -61,10 +62,12 @@ int main(){
     std::string charfile = resource_path + "initialcharacter.png";
     std::string bgfile = resource_path + "initialbackgroundtile.png";
     std::string starfile = resource_path + "star.png";
+    std::string wallfile = resource_path + "wall.png";
     SDL_Texture* character_texture = IMG_LoadTexture(renderer, charfile.c_str());
     SDL_Texture* bgtile_texture = IMG_LoadTexture(renderer, bgfile.c_str());
     SDL_Texture* star_texture = IMG_LoadTexture(renderer, starfile.c_str());
-    if (character_texture == nullptr || bgtile_texture == nullptr || star_texture == nullptr){
+    SDL_Texture* wall_texture = IMG_LoadTexture(renderer,wallfile.c_str());
+    if (character_texture == nullptr || bgtile_texture == nullptr || star_texture == nullptr || wall_texture == nullptr){
             std::cerr << "IMG_LoadTexture error: " << SDL_GetError() << std::endl;
             SDL_DestroyTexture(character_texture);
             SDL_DestroyTexture(bgtile_texture);
@@ -88,21 +91,26 @@ int main(){
     int mousepx = gamesettings.window_width/2;
     int mousepy = gamesettings.window_height/2;
 
-    BasicWall bottomwall, topwall, leftwall, rightwall;
-    bottomwall.create(0,gamesettings.maph,gamesettings.mapw, 0.1);
-    bottomwall.set_color(120,120,120);
+    double wallthickness = 0.1;
+    TextureWall bottomwall, topwall, leftwall, rightwall;
+    bottomwall.x = gamesettings.mapw/2;
+    bottomwall.y = gamesettings.maph+wallthickness/2;
+    bottomwall.setTexture(wall_texture,gamesettings.mapw,wallthickness);
     objects.add_object(&bottomwall);
 
-    topwall.create(0,0,gamesettings.mapw, -0.1);
-    topwall.set_color(120,120,120);
+    topwall.x = gamesettings.mapw/2;
+    topwall.y = -wallthickness/2;
+    topwall.setTexture(wall_texture,gamesettings.mapw,wallthickness);
     objects.add_object(&topwall);
 
-    leftwall.create(0,0,-0.1,gamesettings.maph);
-    leftwall.set_color(120,120,120);
+    leftwall.x = -wallthickness/2;
+    leftwall.y = gamesettings.maph/2;
+    leftwall.setTexture(wall_texture,wallthickness,gamesettings.maph);
     objects.add_object(&leftwall);
 
-    rightwall.create(gamesettings.mapw,0,0.1,gamesettings.maph);
-    rightwall.set_color(120,120,120);
+    rightwall.x = gamesettings.mapw + wallthickness/2;
+    rightwall.y = gamesettings.maph/2;
+    rightwall.setTexture(wall_texture,wallthickness,gamesettings.maph);
     objects.add_object(&rightwall);
 
     Player human;
@@ -332,17 +340,16 @@ int main(){
         SDL_SetRenderDrawColor(renderer, 0,0,0,255);
 		SDL_RenderClear(renderer);
 
-		camera.adjust_zoom(zoomdirection, mousex, mousey);
+        camera.adjust_zoom(zoomdirection, mousex, mousey);
 		
-		for (double x = gamesettings.mapx; x < gamesettings.mapx+gamesettings.mapw; x += tilew){
-			for (double y = gamesettings.mapy; y < gamesettings.mapy+gamesettings.maph; y += tileh){
-                SDL_Rect dst = camera.calculate_display_destination(x,y,tilew,tileh,db::Floor);
-				SDL_RenderCopy(renderer, bgtile_texture, NULL, &dst);
-			}
-        }
+//		for (double x = gamesettings.mapx; x < gamesettings.mapx+gamesettings.mapw; x += tilew){
+//			for (double y = gamesettings.mapy; y < gamesettings.mapy+gamesettings.maph; y += tileh){
+//                SDL_Rect dst = camera.calculate_display_destination(x,y,tilew,tileh,db::Floor);
+//				SDL_RenderCopy(renderer, bgtile_texture, NULL, &dst);
+//			}
+//        }
 
         objects.drawon(renderer, &camera);
-        human.drawon(renderer,&camera);
         if(console.is_active()) console.drawon(renderer);
 
 		SDL_RenderPresent(renderer);
@@ -351,6 +358,7 @@ int main(){
         if((fps_newframe-fps_lastframe) < SCREEN_TICKS_PER_FRAME){
             SDL_Delay(SCREEN_TICKS_PER_FRAME - (fps_newframe-fps_lastframe));
         }
+        std::cout << "fps: " << 1.0/(fps_newframe/1000.0 - fps_lastframe/1000.0) << std::endl;
         fps_lastframe = fps_newframe;
 	}
     SDL_DestroyTexture(character_texture);

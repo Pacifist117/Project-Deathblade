@@ -105,6 +105,8 @@ public:
     bool mouse_controlling(){ return mouse_control;}
     bool is_tracking(){ return tracking_on;}
 
+    double camyaw; //!< Yaw of of the camera (rotate view) (in radians)
+
 protected:
 
     /*!
@@ -125,7 +127,6 @@ protected:
     double camx; //!< X world coordinate of camera
     double camy; //!< Y world coordinate of camera
     double camz; //!< Z world coordinate of camera
-    double camyaw; //!< Yaw of of the camera (rotate view) (in radians)
 
     double* xtracking; //!< X world coordinate to track
     double* ytracking; //!< Y world coordinate to track

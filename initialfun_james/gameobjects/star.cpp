@@ -27,7 +27,8 @@ void Star::setTexture(SDL_Texture* star_texture, double width, double height){
 
 void Star::step_time()
 {
-    ObjectBaseClass::step_time();
+    translate(dx,dy);
+    rotate(dth);
 }
 
 
@@ -35,13 +36,14 @@ void Star::drawon(SDL_Renderer *renderer, CameraControl *camera){
 
     if(star_texture == NULL) return;
 
+
     SDL_Rect dst = camera->calculate_display_destination(
-                x-texturewidth/2.0,
-                y-textureheight/2.0,
+                x,
+                y,
                 texturewidth,
                 textureheight,
-                db::Player);
+                zplane);
 
-    SDL_RenderCopyEx(renderer, star_texture, NULL, &dst, th*180.0/3.14159265359, NULL, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, star_texture, NULL, &dst, (th-camera->camyaw)*180.0/3.14159265359, NULL, SDL_FLIP_NONE);
 
 }
