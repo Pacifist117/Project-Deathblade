@@ -15,8 +15,9 @@
 #include <iostream>
 #include <cmath>
 
-const int SCREEN_FPS = 60;
+const int SCREEN_FPS = 30;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+void draw_fps(SDL_Renderer* renderer, TTF_Font* font, double fps);
 
 int main(){
 
@@ -75,6 +76,12 @@ int main(){
             SDL_DestroyWindow(window);
             SDL_Quit();
             return 1;
+    }
+
+    std::string fontfile = resource_path + "sample.ttf";
+    TTF_Font* font = TTF_OpenFont(fontfile.c_str(), 15);
+    if (font == NULL){
+        std::cerr << "TTF_OpenFont error: " << SDL_GetError() << std::endl;
     }
 
 
@@ -146,7 +153,7 @@ int main(){
     };
 
     std::vector<Star*> star_field;
-    for(int i = 0; i < star_positions.size(); ++i){
+    for(unsigned int i = 0; i < star_positions.size(); ++i){
         Star* newstar = new Star();
 
         newstar->x = star_positions[i].x;
@@ -342,24 +349,25 @@ int main(){
 
         camera.adjust_zoom(zoomdirection, mousex, mousey);
 		
-//		for (double x = gamesettings.mapx; x < gamesettings.mapx+gamesettings.mapw; x += tilew){
-//			for (double y = gamesettings.mapy; y < gamesettings.mapy+gamesettings.maph; y += tileh){
-//                SDL_Rect dst = camera.calculate_display_destination(x,y,tilew,tileh,db::Floor);
-//				SDL_RenderCopy(renderer, bgtile_texture, NULL, &dst);
-//			}
-//        }
+        for (double x = gamesettings.mapx+tilew/2; x < gamesettings.mapx+gamesettings.mapw+tilew/2; x += tilew){
+            for (double y = gamesettings.mapy+tileh/2; y < gamesettings.mapy+gamesettings.maph+tileh/2; y += tileh){
+                SDL_Rect dst = camera.calculate_display_destination(x,y,tilew,tileh,db::Floor);
+                SDL_RenderCopyEx(renderer, bgtile_texture, NULL, &dst, -camera.camyaw*180.0/3.14156033, NULL, SDL_FLIP_NONE);
+            }
+        }
 
         objects.drawon(renderer, &camera);
         if(console.is_active()) console.drawon(renderer);
 
-		SDL_RenderPresent(renderer);
 
         Uint32 fps_newframe = SDL_GetTicks();
         if((fps_newframe-fps_lastframe) < SCREEN_TICKS_PER_FRAME){
             SDL_Delay(SCREEN_TICKS_PER_FRAME - (fps_newframe-fps_lastframe));
         }
-        std::cout << "fps: " << 1.0/(fps_newframe/1000.0 - fps_lastframe/1000.0) << std::endl;
+        draw_fps(renderer, font, 1.0/(fps_newframe/1000.0 - fps_lastframe/1000.0));
         fps_lastframe = fps_newframe;
+
+        SDL_RenderPresent(renderer);
 	}
     SDL_DestroyTexture(character_texture);
 	SDL_DestroyTexture(bgtile_texture);
@@ -371,4 +379,38 @@ int main(){
         delete star_field[i];
 
     return 0;
+}
+
+void draw_fps(SDL_Renderer* renderer, TTF_Font* font, double fps){
+
+    static double slowed_fps = 0;
+    slowed_fps = 0.05*fps + 0.95*slowed_fps;
+
+    std::stringstream fps_ss;
+    fps_ss << "fps: " << slowed_fps;
+    SDL_Surface* input_surface = NULL;
+    SDL_Texture* input_texture = NULL;
+    static SDL_Color font_color = {255,255,255,255};
+
+    input_surface = TTF_RenderText_Solid(font, fps_ss.str().c_str(), font_color);
+    if (input_surface == NULL){
+        std::cerr << "input_surface TTF_RenderText error: " << SDL_GetError() << std::endl;
+        return;
+    }
+    input_texture = SDL_CreateTextureFromSurface(renderer, input_surface);
+    if (input_texture == NULL){
+        std::cerr << "input_texture SDL_CreateTextureFromSurface error: " << SDL_GetError() << std::endl;
+        SDL_FreeSurface(input_surface);
+        return;
+    }
+
+    SDL_Rect inputrect;
+    SDL_QueryTexture(input_texture, NULL, NULL, &inputrect.w, &inputrect.h);
+    inputrect.x = 0;
+    inputrect.y = 0;
+    SDL_RenderCopy(renderer, input_texture, NULL, &inputrect);
+
+
+    SDL_FreeSurface(input_surface);
+    SDL_DestroyTexture(input_texture);
 }
