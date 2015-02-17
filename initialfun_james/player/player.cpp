@@ -11,6 +11,20 @@ Player::~Player(){
 
 }
 
+void Player::rebound()
+{
+    if(bound.enabled){
+        dx = bound.xdrag*0.0001;
+        dy = bound.ydrag*0.0001;
+        bound.enabled = false;
+
+        if(dx > 0.05) dx = 0.05;
+        else if(dx < -0.05) dx = -0.05;
+        if(dy > 0.05) dy = 0.05;
+        else if(dy < -0.05) dy = -0.05;
+    }
+}
+
 void Player::step_time(){
     translate(dx,dy);
     rotate(dth);

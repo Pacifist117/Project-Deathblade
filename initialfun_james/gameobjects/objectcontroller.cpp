@@ -36,27 +36,19 @@ void ObjectController::check_for_collisions(){
             ObjectBaseClass* a = *object1;
             ObjectBaseClass* b = *object2;
 
-            // Calculate if possible collision
+            // Calculate if possible collision <---- should replace with quadtree
 //            double dx = a->x - b->x;
 //            double dy = a->y - b->y;
 //            double square_dist = dx*dx + dy*dy;
 //            if(square_dist > a->square_r + b->square_r) continue;
 
             // Separate Axis Theorem
-            vec2d mtv;
-            double mtv_mag;
+            vec2d mtv; // return object
+            double mtv_mag; // return object
             if(!colliding(a,b,mtv,mtv_mag)) continue;
 
             //react
-            if(a->isMobile() && b->isMobile()){
-                two_mobiles_bounce(a,b,mtv,mtv_mag);
-            }
-            else{
-                ObjectBaseClass* mobile = a->isMobile() ? a : b;
-                ObjectBaseClass* nonmobile = a->isMobile() ? b : a;
-                one_mobile_bounce(mobile,nonmobile,mtv,mtv_mag);
-            }
-
+            bounce_objects(a,b,mtv,mtv_mag);
         }
     }
 }
@@ -101,45 +93,59 @@ bool ObjectController::colliding(ObjectBaseClass* a, ObjectBaseClass* b, vec2d& 
     return true;
 }
 
-void ObjectController::one_mobile_bounce(ObjectBaseClass* mobile, ObjectBaseClass* nonmobile, vec2d mtv_unit, double mtv_mag){
-
-    vec2d cg_diff(mobile->x - nonmobile->x, mobile->y - nonmobile->y);
-    vec2d mtv = mtv_unit*mtv_mag;
-
-    //check if correct normal (parallel confusion)
-    if(cg_diff.dot(mtv) < 0) mtv = mtv*-1;
-
-    // first uncollide
-    mobile->translate(mtv.x,mtv.y);
-
-    double elasticity = mobile->elasticity*nonmobile->elasticity;
-    double friction = mobile->friction*nonmobile->elasticity;
-    double vdotmtv = mobile->dx*mtv_unit.x + mobile->dy*mtv_unit.y;
-
-    mobile->dx = friction*mobile->dx - (friction+elasticity)*vdotmtv*mtv_unit.x;
-    mobile->dy = friction*mobile->dy - (friction+elasticity)*vdotmtv*mtv_unit.y;
-}
-
-void ObjectController::two_mobiles_bounce(ObjectBaseClass* a, ObjectBaseClass* b, vec2d mtv_unit, double mtv_mag){
-    vec2d cg_diff(a->x - b->x, a->y - b->y);
-    vec2d mtv = mtv_unit*mtv_mag;
-
-    //check if correct normal (parallel confusion)
-    if(cg_diff.dot(mtv) < 0) mtv = mtv*-1;
-
-    // first uncollide
-    b->translate(-(a->mass/(a->mass+b->mass))*mtv.x/2,-(a->mass/(a->mass+b->mass))*mtv.y/2);
-    a->translate((b->mass/(a->mass+b->mass))*mtv.x/2,(b->mass/(a->mass+b->mass))*mtv.y/2);
+void ObjectController::bounce_objects(ObjectBaseClass* a, ObjectBaseClass* b, vec2d mtv_unit, double mtv_mag){
 
     double elasticity = a->elasticity*b->elasticity;
     double friction = a->friction*b->elasticity;
-    double vdotmtv = (a->dx-b->dx)*mtv_unit.x + (a->dy-b->dy)*mtv_unit.y;
 
-    a->dx = friction*a->dx - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.x;
-    a->dy = friction*a->dy - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.y;
+    if(a->isPlayer()){
+        Player* player = (Player*)a;
+        player->rebound();
+    }
+    if(b->isPlayer()){
+        Player* player = (Player*)b;
+        player->rebound();
+    }
 
-    b->dx = friction*b->dx + (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.x;
-    b->dy = friction*b->dy + (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.y;
+    // Situation 1: Both objects are not players, but mobile
+    if( a->isMobile() && b->isMobile() ){
+        vec2d cg_diff(a->x - b->x, a->y - b->y);
+        vec2d mtv = mtv_unit*mtv_mag;
+
+        //check if correct normal (parallel confusion)
+        if(cg_diff.dot(mtv) < 0) mtv = mtv*-1;
+
+        double vdotmtv = (a->dx-b->dx)*mtv_unit.x + (a->dy-b->dy)*mtv_unit.y;
+
+        // first, uncollide
+        b->translate(-(a->mass/(a->mass+b->mass))*mtv.x/2,-(a->mass/(a->mass+b->mass))*mtv.y/2);
+        a->translate((b->mass/(a->mass+b->mass))*mtv.x/2,(b->mass/(a->mass+b->mass))*mtv.y/2);
+
+        // bounce
+        a->dx = friction*a->dx - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.x;
+        a->dy = friction*a->dy - (b->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.y;
+
+        b->dx = friction*b->dx + (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.x;
+        b->dy = friction*b->dy + (a->mass/(a->mass+b->mass))*(friction+elasticity)*vdotmtv*mtv_unit.y;
+    }
+
+
+    else{
+        ObjectBaseClass* mobile = (a->isMobile()) ? a : b;
+        ObjectBaseClass* nonmobile = (a->isMobile()) ? b : a;
+
+        vec2d cg_diff(mobile->x - nonmobile->x, mobile->y - nonmobile->y);
+        vec2d mtv = mtv_unit*mtv_mag;
+
+        //check if correct normal (parallel confusion)
+        if(cg_diff.dot(mtv) < 0) mtv = mtv*-1;
+        double vdotmtv = mobile->dx*mtv_unit.x + mobile->dy*mtv_unit.y;
+
+        // first, uncollide
+        mobile->translate(mtv.x,mtv.y);
+        mobile->dx = friction*mobile->dx - (friction+elasticity)*vdotmtv*mtv_unit.x;
+        mobile->dy = friction*mobile->dy - (friction+elasticity)*vdotmtv*mtv_unit.y;
+    }
 }
 
 

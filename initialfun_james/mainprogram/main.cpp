@@ -6,6 +6,7 @@
 #include "gameobjects/texturewall.h"
 #include "gameobjects/star.h"
 #include "player/player.h"
+#include "player/boundclass.h"
 #include "res_path.h"
 
 #include "SDL_image.h"
@@ -169,8 +170,10 @@ int main(){
 
     }
 
+    bool rightmouse_down = false;
+
     SDL_Event event;	
-	bool quitnow = false;
+    bool quitnow = false;
     Uint32 fps_lastframe = SDL_GetTicks();
     while(!quitnow){
 		
@@ -306,10 +309,21 @@ int main(){
                 if (event.button.button == SDL_BUTTON_LEFT){
                     camera.mousecontrol_on();
                 }
+                else if (event.button.button == SDL_BUTTON_RIGHT){
+                    rightmouse_down = true;
+                    human.bound.xclick = camera.xfrompixel(event.button.x,event.button.y,db::Player);
+                    human.bound.yclick = camera.yfrompixel(event.button.x,event.button.y,db::Player);
+                    human.bound.xdrag = 0;
+                    human.bound.ydrag = 0;
+                    human.bound.enabled = true;
+                }
 			}
 			else if (event.type == SDL_MOUSEBUTTONUP){
                 if (event.button.button == SDL_BUTTON_LEFT){
                     camera.mousecontrol_off();
+                }
+                else if (event.button.button == SDL_BUTTON_RIGHT){
+                    rightmouse_down = false;
                 }
 			}
 			else if (event.type == SDL_MOUSEWHEEL){
@@ -333,7 +347,13 @@ int main(){
                     else if (mousepy >= (int)gamesettings.window_height-1) camera.pan_updown(1);
                     else if (mousepy - event.motion.yrel <= 1) camera.pan_updown(0);
                     else if (mousepy - event.motion.yrel >= (int)gamesettings.window_height-1) camera.pan_updown(0);
+
+                    if(rightmouse_down){
+                        human.bound.xdrag += event.motion.xrel;
+                        human.bound.ydrag += event.motion.yrel;
+                    }
 				}
+
             }
 			else if (event.type == SDL_QUIT){
 				quitnow = true;
@@ -358,6 +378,7 @@ int main(){
 
         objects.drawon(renderer, &camera);
         if(console.is_active()) console.drawon(renderer);
+        human.bound.drawon(renderer, &camera);
 
 
         Uint32 fps_newframe = SDL_GetTicks();

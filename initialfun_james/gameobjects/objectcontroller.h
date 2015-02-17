@@ -3,6 +3,7 @@
 
 #include "graphicscontrol/controlbaseclass.h"
 #include "gameobjects/objectbase.h"
+#include "player/player.h"
 #include <vector>
 
 /*!
@@ -20,8 +21,7 @@ public:
     void drawon(SDL_Renderer* renderer, CameraControl* camera);
     void check_for_collisions();
     bool colliding(ObjectBaseClass* a, ObjectBaseClass* b, vec2d &return_normal, double &overlap);
-    void one_mobile_bounce(ObjectBaseClass* mobile, ObjectBaseClass* nonmobile, vec2d mtv_unit, double mtv_mag);
-    void two_mobiles_bounce(ObjectBaseClass* a, ObjectBaseClass* b, vec2d mtv_unit, double mtv_mag);
+    void bounce_objects(ObjectBaseClass* a, ObjectBaseClass* b, vec2d mtv_unit, double mtv_mag);
     void add_object(ObjectBaseClass* newobject);
 
 };

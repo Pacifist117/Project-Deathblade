@@ -59,6 +59,7 @@ public:
     virtual void step_time();
     virtual void drawon(SDL_Renderer* renderer, CameraControl* camera);
     virtual bool isMobile(){return false;}
+    virtual bool isPlayer(){return false;}
 
 private:
 
