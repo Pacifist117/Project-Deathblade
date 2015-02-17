@@ -23,8 +23,8 @@ CameraControl::CameraControl(TempSettings *gamesettings){
     dx = 0; dy = 0; dz = 0;
     mouse_control = false;
 
-    fieldofviewx = 75*3.14156/180.0;
-    tanfovx = tan(fieldofviewx/2.0);
+    fieldofview_w = 75*3.14156/180.0;
+    tanfov_w = tan(fieldofview_w/2.0);
     pixelratio.push_back(1000);
     pixelratio.push_back(500);
     pixelratio.push_back(1);
@@ -44,9 +44,9 @@ CameraControl::~CameraControl(){
 void CameraControl::update_settings(){
 
     camyaw = 0;
-    tanfovx = tan(fieldofviewx/2.0);
-	fieldofviewy = 2*atan(game_settings->window_height*tanfovx/game_settings->window_width);
-    tanfovy = tan(fieldofviewy/2.0);
+    tanfov_w = tan(fieldofview_w/2.0);
+	fieldofview_h = 2*atan(game_settings->window_height*tanfov_w/game_settings->window_width);
+    tanfov_h = tan(fieldofview_h/2.0);
 
 	camx = game_settings->mapx + game_settings->mapw/2.0;
     camy = game_settings->mapy + game_settings->maph/2.0;
@@ -56,8 +56,8 @@ void CameraControl::update_settings(){
 	camz = max_z;
 
 
-    pixelratio[db::Floor] = game_settings->window_width/(2.0*(camz - planeZs[db::Floor])*tanfovx);
-    pixelratio[db::Player] = game_settings->window_width/(2.0*(camz - planeZs[db::Player])*tanfovx);
+    pixelratio[db::Floor] = game_settings->window_width/(2.0*(camz - planeZs[db::Floor])*tanfov_w);
+    pixelratio[db::Player] = game_settings->window_width/(2.0*(camz - planeZs[db::Player])*tanfov_w);
     pixelratio[db::Gui] = 1;
 	
 }
@@ -86,8 +86,8 @@ void CameraControl::adjust_zoom(int input, double mouse_x, double mouse_y){
     if (camz > max_z) camz = max_z;
 	if (camz < min_z) camz = min_z;
 
-    pixelratio[db::Floor] = game_settings->window_width/(2.0*(camz - planeZs[db::Floor])*tanfovx);
-    pixelratio[db::Player] = game_settings->window_width/(2.0*(camz - planeZs[db::Player])*tanfovx);
+    pixelratio[db::Floor] = game_settings->window_width/(2.0*(camz - planeZs[db::Floor])*tanfov_w);
+    pixelratio[db::Player] = game_settings->window_width/(2.0*(camz - planeZs[db::Player])*tanfov_w);
 
     if(input >= 0 && pixelratio[db::Player] != oldpr){
         camx = mouse_x - (oldpr/pixelratio[db::Player])*(mouse_x - camx);
@@ -207,36 +207,36 @@ void CameraControl::checkcamxy(){
     }
     else{
 
-        double minx = -(camz-planeZs[db::Player])*tanfovx + (camx-game_settings->mapmidx)*cos(-camyaw) - (camy-game_settings->mapmidy)*sin(-camyaw);
-        double miny = -(camz-planeZs[db::Player])*tanfovy + (camx-game_settings->mapmidx)*sin(-camyaw) + (camy-game_settings->mapmidy)*cos(-camyaw);
-        double maxx = (camz-planeZs[db::Player])*tanfovx + (camx-game_settings->mapmidx)*cos(-camyaw) - (camy-game_settings->mapmidy)*sin(-camyaw);
-        double maxy = (camz-planeZs[db::Player])*tanfovy + (camx-game_settings->mapmidx)*sin(-camyaw) + (camy-game_settings->mapmidy)*cos(-camyaw);
+        double minx = -(camz-planeZs[db::Player])*tanfov_w + (camx-game_settings->mapmidx)*cos(-camyaw) - (camy-game_settings->mapmidy)*sin(-camyaw);
+        double miny = -(camz-planeZs[db::Player])*tanfov_h + (camx-game_settings->mapmidx)*sin(-camyaw) + (camy-game_settings->mapmidy)*cos(-camyaw);
+        double maxx =  (camz-planeZs[db::Player])*tanfov_w + (camx-game_settings->mapmidx)*cos(-camyaw) - (camy-game_settings->mapmidy)*sin(-camyaw);
+        double maxy =  (camz-planeZs[db::Player])*tanfov_h + (camx-game_settings->mapmidx)*sin(-camyaw) + (camy-game_settings->mapmidy)*cos(-camyaw);
 
 
         if (camx < game_settings->mapx)
             camx = game_settings->mapx;
         else if (camx > game_settings->mapx+game_settings->mapw)
             camx = game_settings->mapx+game_settings->mapw;
-        else if (maxx > max_x){
-            camx -= (maxx-max_x)*cos(-camyaw);
-            camy -= -(maxx-max_x)*sin(-camyaw);
+        else if (maxx > maxview_w){
+            camx -= (maxx-maxview_w)*cos(-camyaw);
+            camy -= -(maxx-maxview_w)*sin(-camyaw);
         }
-        else if (minx < min_x){
-            camx -= (minx-min_x)*cos(-camyaw);
-            camy -= -(minx-min_x)*sin(-camyaw);
+        else if (minx < minview_w){
+            camx -= (minx-minview_w)*cos(-camyaw);
+            camy -= -(minx-minview_w)*sin(-camyaw);
         }
 
         if (camy < game_settings->mapy)
             camy = game_settings->mapy;
         else if (camy > game_settings->mapy+game_settings->maph)
             camy = game_settings->mapy+game_settings->maph;
-        else if (maxy > max_y){
-            camx -= (maxy-max_y)*sin(-camyaw);
-            camy -= (maxy-max_y)*cos(-camyaw);
+        else if (maxy > maxview_h){
+            camx -= (maxy-maxview_h)*sin(-camyaw);
+            camy -= (maxy-maxview_h)*cos(-camyaw);
         }
-        else if (miny < min_y){
-            camx -= (miny-min_y)*sin(-camyaw);
-            camy -= (miny-min_y)*cos(-camyaw);
+        else if (miny < minview_h){
+            camx -= (miny-minview_h)*sin(-camyaw);
+            camy -= (miny-minview_h)*cos(-camyaw);
         }
     }
 }
@@ -251,54 +251,54 @@ void CameraControl::calculate_camera_bounds()
     double mapmax_y = game_settings->mapy + sidebuffer + game_settings->maph/2;
 
     // find horizontal
-    min_x = mapmin_x*cos(-camyaw) - mapmin_y*sin(-camyaw);
-    max_x = min_x;
+    minview_w = mapmin_x*cos(-camyaw) - mapmin_y*sin(-camyaw);
+    maxview_w = minview_w;
 
     double p = mapmin_x*cos(-camyaw) - mapmax_y*sin(-camyaw);
-    if (p < min_x) min_x = p;
-    else if (p > max_x) max_x = p;
+    if (p < minview_w) minview_w = p;
+    else if (p > maxview_w) maxview_w = p;
 
     p = mapmax_x*cos(-camyaw) - mapmax_y*sin(-camyaw);
-    if (p < min_x) min_x = p;
-    else if (p > max_x) max_x = p;
+    if (p < minview_w) minview_w = p;
+    else if (p > maxview_w) maxview_w = p;
 
     p = mapmax_x*cos(-camyaw) - mapmin_y*sin(-camyaw);
-    if (p < min_x) min_x = p;
-    else if (p > max_x) max_x = p;
+    if (p < minview_w) minview_w = p;
+    else if (p > maxview_w) maxview_w = p;
 
     // find vertical
-    min_y = mapmin_x*sin(-camyaw) + mapmin_y*cos(-camyaw);
-    max_y = min_y;
+    minview_h = mapmin_x*sin(-camyaw) + mapmin_y*cos(-camyaw);
+    maxview_h = minview_h;
 
     p = mapmin_x*sin(-camyaw) + mapmax_y*cos(-camyaw);
-    if (p < min_y) min_y = p;
-    else if (p > max_y) max_y = p;
+    if (p < minview_h) minview_h = p;
+    else if (p > maxview_h) maxview_h = p;
 
     p = mapmax_x*sin(-camyaw) + mapmax_y*cos(-camyaw);
-    if (p < min_y) min_y = p;
-    else if (p > max_y) max_y = p;
+    if (p < minview_h) minview_h = p;
+    else if (p > maxview_h) maxview_h = p;
 
     p = mapmax_x*sin(-camyaw) + mapmin_y*cos(-camyaw);
-    if (p < min_y) min_y = p;
-    else if (p > max_y) max_y = p;
+    if (p < minview_h) minview_h = p;
+    else if (p > maxview_h) maxview_h = p;
 
     // change to be ratio of screen
-    double w = max_x - min_x;
-    double h = max_y - min_y;
+    double w = maxview_w - minview_w;
+    double h = maxview_h - minview_h;
     double R = game_settings->window_width/(1.0*game_settings->window_height);
     if (R*h > w){
-        double midx = (max_x + min_x)/2;
-        min_x = midx - R*h/2;
-        max_x = midx + R*h/2;
+        double midx = (maxview_w + minview_w)/2;
+        minview_w = midx - R*h/2;
+        maxview_w = midx + R*h/2;
     }
     else{
-        double midy = (max_y + min_y)/2;
-        min_y = midy - w/R/2;
-        max_y = midy + w/R/2;
+        double midy = (maxview_h + minview_h)/2;
+        minview_h = midy - w/R/2;
+        maxview_h = midy + w/R/2;
     }
 
-    double zw = (max_x - min_x)/2/tanfovx;
-    double zh = (max_y - min_y)/2/tanfovy;
+    double zw = (maxview_w - minview_w)/2/tanfov_w;
+    double zh = (maxview_h - minview_h)/2/tanfov_h;
 
     max_z = (zw > zh) ? zw : zh;
     max_z += planeZs[db::Player];
@@ -474,12 +474,12 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
             returnstring << "      Sets the horizontal field of view of the camera (in degrees). Default is 75 degrees.\n";
         }
         else if (args[2].compare("?") == 0){
-            returnstring << "   camera fieldofview " << (int)(fieldofviewx*180/3.14156) << std::endl;
+            returnstring << "   camera fieldofview " << (int)(fieldofview_w*180/3.14156) << std::endl;
         }
         else{
-            fieldofviewx = atof(args[2].c_str());
-            returnstring << "fieldofview set to " << fieldofviewx << std::endl;
-            fieldofviewx = fieldofviewx*3.14156/180.0;
+            fieldofview_w = atof(args[2].c_str());
+            returnstring << "fieldofview set to " << fieldofview_w << std::endl;
+            fieldofview_w = fieldofview_w*3.14156/180.0;
             update_settings();
         }
     }

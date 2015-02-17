@@ -55,7 +55,7 @@ public:
     void goback_inhistory(); //!< Handles up-arrow and changes current_command
     void goforward_inhistory(); //!< Handles down-arrow and changes current_command
     bool mouse_grab(bool mousedown, int mousex, int mousey); //!< Handles left mouseclick to move/resize window
-    void handle_mouse(int mousex, int mousey, int relmousex, int relmousey); //!< Reacts to mouse move if grabbed
+    void handle_mouse(int relmousex, int relmousey); //!< Reacts to mouse move if grabbed
     bool scroll(int input, int mousepx, int mousepy); //!< Handles mouse wheel to scroll through history
     
     // basic private member manipulation
@@ -91,11 +91,11 @@ private:
     int scroll_offset; //!< Scroll position of history
 
     std::vector<ControlBaseClass*> controllers; //!< Controllers that accept commands
-    std::vector<std::string> history;
-    std::vector<std::string> rethistory;
-    unsigned int history_maxlength;
-    unsigned int history_place;
-    void addtohistory(std::string prompt, std::string result);
+    std::vector<std::string> history; //!< Commands used in the past
+    std::vector<std::string> rethistory; //!< Return strings resulting from commands in history
+    unsigned int history_maxlength; //!< Maximum length of history
+    unsigned int history_place; //!< Current location in history recall
+    void addtohistory(std::string prompt, std::string result); //!< Adds command and return string to history
 
 };
 

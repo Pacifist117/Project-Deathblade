@@ -5,21 +5,31 @@
 #include "SDL.h"
 #include "SDL2_gfxPrimitives.h"
 
+/*!
+ * \brief The TextureWall class is a simple wall stretching a texture. More efficient than BasicWall.
+ */
 class TextureWall : public ObjectBaseClass
 {
 public:
     TextureWall();
     ~TextureWall();
 
-    SDL_Texture* wall_texture;
-    double width;
-    double height;
-
-    // basic private member manipulation
+    /*!
+     * \brief Sets the wall's texture and size in game coordinates.
+     * \param wall_texture Texture to use for wall. This will be stretched to size.
+     * \param width in game coordinates.
+     * \param height in game coordinates.
+     */
     void setTexture(SDL_Texture* wall_texture, double width, double height);
 
-    void create(double x, double y, double w, double h);
+    // Inherited functions.
     void drawon(SDL_Renderer *renderer, CameraControl* camera);
+
+private:
+
+    SDL_Texture* wall_texture; //!< Texture to use for wall. Set with setTexture().
+    double width; //!< Width of wall in game coordinates
+    double height; //!< Height of wall in game coordinates
 
 
 };

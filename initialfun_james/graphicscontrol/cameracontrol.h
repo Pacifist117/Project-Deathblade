@@ -56,6 +56,10 @@ public:
      */
     void pan_updown(int ydirection);
 
+    /*!
+     * \brief Rotates the camera clockwise on input from ctrl+mouse movement.
+     * \param delta_theta Change in camera angle to rotate.
+     */
     void rotate_view(double delta_theta);
 
     /*!
@@ -117,6 +121,11 @@ protected:
      */
     void checkcamxy();
 
+    /*!
+     * \brief Based on the rotation of the camera, this function calculates the min/max 'x/y' the camera can see.
+     *
+     * x and y are in quotation because it is really the x/y projected onto the camera's horizontal/vertical axes.
+     */
     void calculate_camera_bounds();
 
     /*!
@@ -131,14 +140,15 @@ protected:
     double* xtracking; //!< X world coordinate to track
     double* ytracking; //!< Y world coordinate to track
 
-    double max_x; //!< Max X world coordinate of camera
-    double min_x; //!< Min X world coordinate of camera
-    double max_y; //!< Max Y world coordinate of camera
-    double min_y; //!< Min Y world coordinate of camera
+    double maxview_w; //!< Max horizontal view distance of the camera
+    double minview_w; //!< Min horizontal view distance of the camera
+    double maxview_h; //!< Max vertical view distance of the camera
+    double minview_h; //!< Min vertical view distance of the camera
     double max_z; //!< Max Z world coordinate of camera
     double min_z; //!< Min Z world coordinate of camera
 
     bool mouse_control; //!< Toggle for when mouse is in control
+    bool tracking_on; //!< Toggle for camx/y tracks x/ytracking pointers
 
     // player prefernce settings
     double zoomin_speed;    //!< Sensitivity of mousewheel up: zoom in
@@ -148,19 +158,17 @@ protected:
     double sidebuffer;    //!< Viewable distance of map
     double pan_speed;       //!< Speed of panning with wasd/arrows/mouse
 
-    double fieldofviewx; //!< Field of view in the x direction (in radians)
-    double fieldofviewy; //!< Field of view in the y direction (in radians)
+    double fieldofview_w; //!< Field of view in the x direction (in radians)
+    double fieldofview_h; //!< Field of view in the y direction (in radians)
 
     // Other variables used internally.
     std::vector<double> planeZs;        //!< The depths associated with each ZPlane
     std::vector<double> pixelratio;     //!< Pixels per world unit, for each ZPlane
-    double dx,dy,dz;
+    double dx,dy,dz; //!< Speed of camera movement used for momentum.
 
-    double tanfovx; //convenient
-    double tanfovy;
-    double maxviewx;
-    double maxviewy;
-    bool tracking_on;
+    //convenient
+    double tanfov_w; //!< tangent of fieldofview_w/2
+    double tanfov_h; //!> tangent of fieldofview_h/2
 };
 
 #endif // CAMERACONTROL_H

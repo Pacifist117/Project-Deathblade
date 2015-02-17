@@ -227,7 +227,7 @@ int main(){
                 else if (event.type == SDL_MOUSEMOTION){
                     mousepx = event.motion.x;
                     mousepy = event.motion.y;
-                    console.handle_mouse(event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
+                    console.handle_mouse(event.motion.xrel, event.motion.yrel);
 
                     if (camera.mouse_controlling()){
                         camera.mousecontrol_move(mousepx, mousepy, event.motion.xrel, event.motion.yrel,SDL_GetModState()==KMOD_LCTRL);

@@ -312,9 +312,11 @@ bool DeveloperConsoleClass::mouse_grab(bool mousedown, int mousex, int mousey){
     resize_right = (abs((position.x+position.w) - (mousex)) <= 2);
     resize_top = (abs((position.y) - (mousey)) <= 2);
     resize_bottom = (abs((position.y+position.h) - (mousey)) <= 2);
+
+    return true;
 }
 
-void DeveloperConsoleClass::handle_mouse(int mousex, int mousey, int relmousex, int relmousey){
+void DeveloperConsoleClass::handle_mouse(int relmousex, int relmousey){
 
     if (move_grabbed){
         position.x = position.x+relmousex;
@@ -336,7 +338,7 @@ void DeveloperConsoleClass::handle_mouse(int mousex, int mousey, int relmousex, 
     }
 
     if (position.w < 100) position.w = 100;
-    if (position.h < 3*fontsize) position.h = 3*fontsize;
+    if (position.h < 3*(int)fontsize) position.h = 3*fontsize;
 }
 
 bool DeveloperConsoleClass::scroll(int input, int mousepx, int mousepy){
@@ -384,8 +386,9 @@ void DeveloperConsoleClass::setfont(std::string filename, unsigned int font_size
 
 void DeveloperConsoleClass::add_controller(ControlBaseClass *newclass)
 {
-    for (int i = 0; i < controllers.size(); ++i){
-        if (newclass == controllers[i])
+    std::vector<ControlBaseClass*>::iterator controller;
+    for (controller = controllers.begin(); controller != controllers.end(); ++controller){
+        if (newclass == *controller)
             return;
     }
     controllers.push_back(newclass);

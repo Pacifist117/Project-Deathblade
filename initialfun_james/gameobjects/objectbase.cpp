@@ -49,7 +49,7 @@ void ObjectBaseClass::calculate_normals(){
         normal.y /= r;
 
         bool unique = true;
-        for(int j = 0; j < side_normals.size(); ++j){
+        for(unsigned int j = 0; j < side_normals.size(); ++j){
             if(normal.x == side_normals[j].x && normal.y == side_normals[j].y){
                 unique = false;
                 break;
