@@ -16,7 +16,7 @@
 #include <iostream>
 #include <cmath>
 
-const int SCREEN_FPS = 30;
+const int SCREEN_FPS = 600;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 void draw_fps(SDL_Renderer* renderer, TTF_Font* font, double fps);
 
@@ -53,7 +53,7 @@ int main(){
         return 1;
     }
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == nullptr){
         std::cerr << "SDL_CreateRenderer error: " << SDL_GetError() << std::endl;
         SDL_DestroyWindow(window);
@@ -179,7 +179,7 @@ int main(){
 		
         int zoomdirection = 0;
 
-		while(SDL_PollEvent(&event)){
+        while(SDL_PollEvent(&event)){
 
             if (console.is_active()){
                 if (event.type == SDL_KEYDOWN){
@@ -249,11 +249,11 @@ int main(){
             }
 
             // if console is not up
-			if (event.type == SDL_KEYDOWN){
-				switch(event.key.keysym.sym){
+            if (event.type == SDL_KEYDOWN){
+                switch(event.key.keysym.sym){
                 case SDLK_ESCAPE:
-						quitnow = true;
-						break;
+                        quitnow = true;
+                        break;
                 case SDLK_BACKQUOTE:
                     console.toggle();
                     break;
@@ -281,9 +281,9 @@ int main(){
                     break;
                 default:
                     break;
-				}
-			}
-			else if (event.type == SDL_KEYUP){
+                }
+            }
+            else if (event.type == SDL_KEYUP){
                 switch(event.key.keysym.sym){
                 case SDLK_w:
                 case SDLK_UP:
@@ -304,8 +304,8 @@ int main(){
                 default:
                     break;
                 }
-			}
-			else if (event.type == SDL_MOUSEBUTTONDOWN){
+            }
+            else if (event.type == SDL_MOUSEBUTTONDOWN){
                 if (event.button.button == SDL_BUTTON_LEFT){
                     camera.mousecontrol_on();
                 }
@@ -317,26 +317,26 @@ int main(){
                     human.bound.ydrag = 0;
                     human.bound.enabled = true;
                 }
-			}
-			else if (event.type == SDL_MOUSEBUTTONUP){
+            }
+            else if (event.type == SDL_MOUSEBUTTONUP){
                 if (event.button.button == SDL_BUTTON_LEFT){
                     camera.mousecontrol_off();
                 }
                 else if (event.button.button == SDL_BUTTON_RIGHT){
                     rightmouse_down = false;
                 }
-			}
-			else if (event.type == SDL_MOUSEWHEEL){
+            }
+            else if (event.type == SDL_MOUSEWHEEL){
                 zoomdirection += event.wheel.y;
-			}
-			else if (event.type == SDL_MOUSEMOTION){
+            }
+            else if (event.type == SDL_MOUSEMOTION){
                 mousepx = event.motion.x;
                 mousepy = event.motion.y;
 
-				if (camera.mouse_controlling()){
+                if (camera.mouse_controlling()){
                     camera.mousecontrol_move(mousepx, mousepy, event.motion.xrel, event.motion.yrel,SDL_GetModState()==KMOD_LCTRL);
-				}
-				else{
+                }
+                else{
                     mousex = camera.xfrompixel(event.motion.x, event.motion.y, db::Player);
                     mousey = camera.yfrompixel(event.motion.x, event.motion.y, db::Player);
                     if(mousepx <= 1) camera.pan_leftright(-1);
@@ -352,20 +352,20 @@ int main(){
                         human.bound.xdrag += event.motion.xrel;
                         human.bound.ydrag += event.motion.yrel;
                     }
-				}
+                }
 
             }
-			else if (event.type == SDL_QUIT){
-				quitnow = true;
+            else if (event.type == SDL_QUIT){
+                quitnow = true;
             }
 	
-		}
+        }
 
 
         objects.step_time();
 
         SDL_SetRenderDrawColor(renderer, 0,0,0,255);
-		SDL_RenderClear(renderer);
+        SDL_RenderClear(renderer);
 
         camera.adjust_zoom(zoomdirection, mousex, mousey);
 		

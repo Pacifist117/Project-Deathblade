@@ -42,6 +42,9 @@ void ObjectController::check_for_collisions(){
 //            double square_dist = dx*dx + dy*dy;
 //            if(square_dist > a->square_r + b->square_r) continue;
 
+			// Some how save last axis with no overlap (returned through mtv)
+			// and check before full colliding function.
+
             // Separate Axis Theorem
             vec2d mtv; // return object
             double mtv_mag; // return object
