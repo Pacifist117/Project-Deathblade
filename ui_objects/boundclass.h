@@ -2,7 +2,7 @@
 #define BOUNDCLASS_H
 
 #include "gameobjects/objectbase.h"
-#include "graphicscontrol/cameracontrol.h"
+#include "controller_camera/cameracontrol.h"
 
 /*!
  * \brief The BoundClass class is a very early implementation of how a player controls a bounce.

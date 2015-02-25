@@ -1,8 +1,8 @@
 #ifndef OBJECTBASE_H
 #define OBJECTBASE_H
 
-#include "graphicscontrol/gameenums.h"
-#include "graphicscontrol/cameracontrol.h"
+#include "controller_base/gameenums.h"
+#include "controller_camera/cameracontrol.h"
 #include "SDL.h"
 #include "SDL2_gfxPrimitives.h"
 

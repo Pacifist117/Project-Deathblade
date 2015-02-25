@@ -1,12 +1,12 @@
 
-#include "graphicscontrol/cameracontrol.h"
+#include "controller_camera/cameracontrol.h"
 #include "gameobjects/objectcontroller.h"
 #include "developer_console/developer_console.h"
 #include "gameobjects/basicwall.h"
 #include "gameobjects/texturewall.h"
 #include "gameobjects/star.h"
-#include "player/player.h"
-#include "player/boundclass.h"
+#include "players/player.h"
+#include "ui_objects/boundclass.h"
 #include "res_path.h"
 
 #include "SDL_image.h"

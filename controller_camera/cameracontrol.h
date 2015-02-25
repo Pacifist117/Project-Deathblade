@@ -1,9 +1,9 @@
 #ifndef CAMERACONTROL_H
 #define CAMERACONTROL_H
 
-#include "graphicscontrol/gameenums.h"
-#include "graphicscontrol/tempsettings.h"
-#include "graphicscontrol/controlbaseclass.h"
+#include "controller_base/gameenums.h"
+#include "controller_base/tempsettings.h"
+#include "controller_base/controlbaseclass.h"
 
 #include <iostream>
 #include <cmath>

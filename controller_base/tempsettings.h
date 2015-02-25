@@ -1,7 +1,7 @@
 #ifndef TEMPSETTINGS_H
 #define TEMPSETTINGS_H
 
-#include "graphicscontrol/controlbaseclass.h"
+#include "controller_base/controlbaseclass.h"
 #include <vector>
 
 /*!

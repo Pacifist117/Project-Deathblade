@@ -1,6 +1,5 @@
 project(gameobjects)
 
-find_package(SDL2_gfx REQUIRED)
 
 add_library(gameobjects 
         objectbase.cpp objectbase.h

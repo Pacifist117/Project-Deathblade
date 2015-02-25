@@ -1,8 +1,8 @@
 #ifndef DEVELOPER_CONSOLE_H
 #define DEVELOPER_CONSOLE_H
 
-#include "graphicscontrol/tempsettings.h"
-#include "graphicscontrol/controlbaseclass.h"
+#include "controller_base/tempsettings.h"
+#include "controller_base/controlbaseclass.h"
 
 #include "SDL.h"
 #include "SDL_ttf.h"

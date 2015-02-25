@@ -1,4 +1,4 @@
-#include "graphicscontrol/cameracontrol.h"
+#include "controller_camera/cameracontrol.h"
 
 CameraControl::CameraControl(TempSettings *gamesettings){
 

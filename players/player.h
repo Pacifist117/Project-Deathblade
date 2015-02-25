@@ -2,7 +2,7 @@
 #define PLAYER_H
 
 #include "gameobjects/objectbase.h"
-#include "player/boundclass.h"
+#include "ui_objects/boundclass.h"
 
 class Player : public ObjectBaseClass {
 

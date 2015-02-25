@@ -1,9 +1,9 @@
 #ifndef OBJECTCONTROLLER_H
 #define OBJECTCONTROLLER_H
 
-#include "graphicscontrol/controlbaseclass.h"
+#include "controller_base/controlbaseclass.h"
 #include "gameobjects/objectbase.h"
-#include "player/player.h"
+#include "players/player.h"
 #include <vector>
 
 /*!
