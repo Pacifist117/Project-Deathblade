@@ -5,11 +5,13 @@
 #include "controller_base/tempsettings.h"
 #include "controller_base/controlbaseclass.h"
 
+
 #include <iostream>
 #include <cmath>
 #include <vector>
 #include "SDL.h"
 
+namespace deathblade{
 
 /*!
  * \brief The CameraControl class moves the camera according to mouse and mouse wheel inputs.
@@ -63,7 +65,7 @@ public:
     void rotate_view(double delta_theta);
 
     /*!
-     * \brief Given a position in space, calculates the pixel destination.
+     * \brief Given a position in space, calculates the pixel destination (before rotoation).
      * \param x X position in space
      * \param y Y position in space
      * \param w Width of object in space
@@ -133,12 +135,7 @@ protected:
      */
     TempSettings *game_settings;
 
-    double camx; //!< X world coordinate of camera
-    double camy; //!< Y world coordinate of camera
-    double camz; //!< Z world coordinate of camera
-
-    double* xtracking; //!< X world coordinate to track
-    double* ytracking; //!< Y world coordinate to track
+    CameraObject m_camera_object;
 
     double maxview_w; //!< Max horizontal view distance of the camera
     double minview_w; //!< Min horizontal view distance of the camera
@@ -171,4 +168,5 @@ protected:
     double tanfov_h; //!> tangent of fieldofview_h/2
 };
 
+} // deathblade namespace
 #endif // CAMERACONTROL_H

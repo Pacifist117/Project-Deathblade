@@ -1,32 +1,13 @@
 #ifndef OBJECTBASE_H
 #define OBJECTBASE_H
 
-#include "controller_base/gameenums.h"
-#include "controller_camera/cameracontrol.h"
-#include "SDL.h"
-#include "SDL2_gfxPrimitives.h"
-
 #include <vector>
+#include <unordered_set>
+#include <algorithm>
+#include <iostream>
 
-/*!
- * \brief The vec2d class is a two dimension vector mainly used for bounding points in the game.
- */
-class vec2d {
+namespace deathblade{
 
-public:
-    vec2d(){x=0;y=0;}
-    vec2d(double x, double y){
-        this->x = x;
-        this->y = y;
-    }
-    double x,y;
-
-    double dot(const vec2d other){ return x*other.x + y*other.y; }
-    vec2d operator+(const vec2d other){ return vec2d(x+other.x,y+other.y); }
-    vec2d operator-(const vec2d other){ return vec2d(x-other.x,y-other.y); }
-    vec2d operator*(const double mag){ return vec2d(x*mag, y*mag); }
-    double &operator[](unsigned int n){ return (n==0 ? x : y); }
-};
 
 
 /*!
@@ -39,68 +20,48 @@ public:
     ObjectBaseClass();
     virtual ~ObjectBaseClass();
 
-
-    double x,y,th; //!< Position and angle of object
-    double dx,dy,dth; //!< Speed of object
-    double mass, elasticity, friction; //!< Characteristics of object related to collision.
-    db::ZPlane zplane; //!< Depth of object used for drawing
-    std::vector<vec2d> side_normals; //!< Normal vectors of the bounding line segments, used in collision.
-    std::vector<vec2d> bounding_points; //!< Points bounding the object, used in collision.
-
-    /*!
-     * \brief Moves the object, namely shifts values x,y and bounding points.
-     * \param delx Change in x to move.
-     * \param dely Change in y to move.
-     */
-    void translate(double delx, double dely);
-
-    /*!
-     * \brief Rotates the object, namely shifts th.
-     * \param deltheta Change in theta to rotate (positive is clockwise).
-     */
-    void rotate(double deltheta);
-
-    /*!
-     * \brief Sorts the points and calls calculate_normals().
-     * \bug square_r method does not work well. Should replace with quad tree?
-     */
-    void organize_points();
-
-    /*!
-     * \brief Uses bounding_points to calculate normal vectors to the edges of the object.
-     */
-    void calculate_normals();
-
-    /*!
-     * \brief Projects the object onto an axis, used in collision.
-     * \param axis Axis to be projected onto.
-     * \return Two dimensional vector with [0]/x being the minimum on axis and [1]/y the maximum.
-     */
-    vec2d project_onto(vec2d &axis);
-
-    double square_r; //!< Maximum radius squared. Not working...
-
-    // Inherited members.
-    virtual void step_time();
-    virtual void drawon(SDL_Renderer* renderer, CameraControl* camera);
     virtual bool isMobile(){return false;}
     virtual bool isPlayer(){return false;}
+    virtual void step_time();
+
+    virtual void latch_to(ObjectBaseClass* other_object, vec2d relative_pos, double relative_th);
+    virtual void release_latch();
+    virtual void latched_by(ObjectBaseClass* other_object);
+    virtual void latch_released(ObjectBaseClass* other_object);
+    virtual bool is_latched();
+
+    // Basic Private Member Manipulation
+    virtual double& x(){return m_position.x();}
+    virtual double& y(){return m_position.y();}
+    virtual double& z(){return m_z;}
+    virtual double& th(){return m_th;}
+
+    virtual double& dx(){return m_velocity.x();}
+    virtual double& dy(){return m_velocity.y();}
+    virtual double& dz(){return m_dz;}
+    virtual double& dth(){return m_dth;}
+
+    virtual vec2d& vel(){return m_velocity;}
+    virtual vec2d& pos(){return m_position;}
 
 private:
 
-    /*!
-     * \brief The clockwise struct is used to sort the bounding_points in a clockwise order. See organize_points();
-     */
-    struct clockwise {
-        clockwise(const ObjectBaseClass& c) : theshape(c) {}
-        bool operator () (const vec2d& a, const vec2d& b){
-            double atheta = atan2(a.y-theshape.y,a.x-theshape.x);
-            double btheta = atan2(b.y-theshape.y,b.x-theshape.x);
-            return atheta < btheta;
-        }
-        const ObjectBaseClass& theshape;
-    };
+    // Center of gravity info
+    vec2d m_position; //!< World x,y position of object
+    double m_z = 0; //!< World z point of object
+    double m_th = 0; //!< World angle of object
+
+    vec2d m_velocity; //!< World x,y speed of object (dx,dy)
+    double m_dz = 0; //!< World z speed of object
+    double m_dth = 0; //!< World angle speed of object
+
+    // Object tracking
+    ObjectBaseClass* m_latched_to = nullptr;
+    vec2d m_latch_pos;
+    double m_latch_th = 0;
+    std::unordered_set<ObjectBaseClass*> m_latched_objects;
 };
 
+} // deathblade namespace
 
 #endif // OBJECTBASE_H

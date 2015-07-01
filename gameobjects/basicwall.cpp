@@ -1,5 +1,8 @@
 #include "gameobjects/basicwall.h"
 
+namespace deathblade{
+
+
 BasicWall::BasicWall()
 {
     color.r = 100;
@@ -40,3 +43,5 @@ void BasicWall::set_color(Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha){
     color.b = blue;
     color.a = alpha;
 }
+
+} // deathblade namespace

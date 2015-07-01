@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace deathblade{
+
 /*!
  * \brief The ControlBaseClass class is the template for what every controller class will have.
  *
@@ -43,4 +45,5 @@ public:
 };
 
 
+} // deathblade namespace
 #endif // CONTROLBASECLASS_H

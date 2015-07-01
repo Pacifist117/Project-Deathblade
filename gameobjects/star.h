@@ -4,6 +4,9 @@
 #include "gameobjects/objectbase.h"
 #include "SDL.h"
 
+namespace deathblade{
+
+
 /*!
  * \brief The Star class represents a star object!
  */
@@ -23,7 +26,7 @@ public:
 
     // inherited functions
     void step_time();
-    bool isMobile(){return true;}
+    bool isMobile(){return false;}
     void drawon(SDL_Renderer* renderer, CameraControl* camera);
 
 private:
@@ -33,4 +36,5 @@ private:
     double textureheight; //!< Height of star object in game coordinates
 };
 
+} // deathblade namespace
 #endif // STAR_H

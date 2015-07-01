@@ -2,6 +2,8 @@
 #include <sstream>
 #include <iterator>
 
+namespace deathblade{
+
 DeveloperConsoleClass::DeveloperConsoleClass(TempSettings *gamesettings){
 
     if (gamesettings == NULL){
@@ -427,3 +429,5 @@ std::string DeveloperConsoleClass::parse_arguments(std::vector<std::string> args
     return returnstring.str();
 
 }
+
+} // deathblade namespace

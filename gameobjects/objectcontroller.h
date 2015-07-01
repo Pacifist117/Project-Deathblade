@@ -6,6 +6,9 @@
 #include "players/player.h"
 #include <vector>
 
+namespace deathblade{
+
+
 /*!
  * \brief The ObjectController class routinely updates all objects and checks for intersections.
  */
@@ -58,6 +61,13 @@ public:
      */
     void add_object(ObjectBaseClass* newobject);
 
+    /*!
+     * \brief Deletes object from vector and removes any references to the object in other objects.
+     * \param object Object to delete.
+     */
+    void delete_object(ObjectBaseClass* object);
+
+
 private:
 
     /*!
@@ -67,4 +77,5 @@ private:
 };
 
 
+} // deathblade namespace
 #endif // OBJECTCONTROLLER_H

@@ -4,6 +4,7 @@
 #include "controller_base/controlbaseclass.h"
 #include <vector>
 
+namespace deathblade{
 /*!
  * \brief The TempSettings class is just a placeholder for the main controller class? or just the
  * game settings class.
@@ -45,4 +46,5 @@ public:
 
 };
 
+} // deathblade namespace
 #endif // TEMPSETTINGS_H

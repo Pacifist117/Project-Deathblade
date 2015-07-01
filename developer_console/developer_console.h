@@ -11,6 +11,9 @@
 #include <vector>
 #include <string>
 
+namespace deathblade{
+
+
 /*!
  * \brief The DeeloperConsoleClass is a controller class that is the developer console. 
  * 
@@ -99,4 +102,5 @@ private:
 
 };
 
+} // deathblade namespace
 #endif

@@ -3,6 +3,9 @@
 #include <sstream>
 #include <iterator>
 
+namespace deathblade{
+
+
 ControlBaseClass::ControlBaseClass()
 {
     name = "";
@@ -21,3 +24,5 @@ void ControlBaseClass::change_setting(std::string command)
 }
 
 std::ostream* ControlBaseClass::outstream = &std::cout;
+
+} // deathblade namespace

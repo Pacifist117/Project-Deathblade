@@ -35,6 +35,7 @@ link_directories(
 		${CMAKE_SOURCE_DIR}/lib
 		)
 
+add_subdirectory( utility )
 add_subdirectory( gameobjects )
 add_subdirectory( ui_objects )
 add_subdirectory( players )

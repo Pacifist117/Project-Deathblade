@@ -1,5 +1,8 @@
 #include "gameobjects/star.h"
 
+namespace deathblade{
+
+
 Star::Star(){
     star_texture = NULL;
     texturewidth = 0;
@@ -47,3 +50,5 @@ void Star::drawon(SDL_Renderer *renderer, CameraControl *camera){
     SDL_RenderCopyEx(renderer, star_texture, NULL, &dst, (th-camera->camyaw)*180.0/3.14159265359, NULL, SDL_FLIP_NONE);
 
 }
+
+} // deathblade namespace

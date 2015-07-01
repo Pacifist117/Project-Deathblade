@@ -4,6 +4,9 @@
 #include "gameobjects/objectbase.h"
 #include "ui_objects/boundclass.h"
 
+namespace deathblade{
+
+
 class Player : public ObjectBaseClass {
 
 public:
@@ -15,7 +18,7 @@ public:
     /*!
      * \brief Early start of what to do when player does a controlled bounce.
      */
-    void rebound();
+    void rebound(ObjectBaseClass* );
 
     /*!
      * \brief Sets the texture for the player, and width/height in game coordinates.
@@ -33,11 +36,12 @@ public:
 
 private:
 
-    SDL_Texture* character_texture; //!< texture used to draw character. Set with setTexture.
-    double texturewidth; //!< Width of character in game coordinates.
-    double textureheight; //!< Height of character in game coordinates.
+    SDL_Texture* character_texture = nullptr; //!< texture used to draw character. Set with setTexture.
+    double texturewidth = 0; //!< Width of character in game coordinates.
+    double textureheight = 0; //!< Height of character in game coordinates.
 };
 
 
 
+} // deathblade namespace
 #endif

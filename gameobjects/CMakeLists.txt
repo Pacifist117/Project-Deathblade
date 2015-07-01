@@ -2,7 +2,8 @@ project(gameobjects)
 
 
 add_library(gameobjects 
-        objectbase.cpp objectbase.h
+        objectbase.h objectbase.cpp
+        gameobject.cpp gameobject.h
         objectcontroller.cpp objectcontroller.h
         basicwall.cpp basicwall.h
         texturewall.cpp texturewall.h

@@ -1,9 +1,9 @@
 #include "player.h"
 
+namespace deathblade{
+
+
 Player::Player(){
-    character_texture = NULL;
-    texturewidth = 0;
-    textureheight = 0;
     mass = 150;
 }
 
@@ -22,6 +22,10 @@ void Player::rebound()
         else if(dx < -0.05) dx = -0.05;
         if(dy > 0.05) dy = 0.05;
         else if(dy < -0.05) dy = -0.05;
+    }
+    else{
+        dx = 0;
+        dy = 0;
     }
 }
 
@@ -59,3 +63,5 @@ void Player::drawon(SDL_Renderer *renderer, CameraControl *camera){
     SDL_RenderCopyEx(renderer, character_texture, NULL, &dst, (th-camera->camyaw)*180.0/3.14159265359, NULL, SDL_FLIP_NONE);
 
 }
+
+} // deathblade namespace

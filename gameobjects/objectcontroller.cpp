@@ -1,6 +1,9 @@
 #include "gameobjects/objectcontroller.h"
 #include "SDL_rect.h"
 
+namespace deathblade{
+
+
 ObjectController::ObjectController(){
 
 }
@@ -160,3 +163,10 @@ void ObjectController::add_object(ObjectBaseClass *newobject){
 
     objects.push_back(newobject);
 }
+
+void ObjectController::delete_object(ObjectBaseClass *object)
+{
+
+}
+
+} // deathblade namespace

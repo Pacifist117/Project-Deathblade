@@ -5,6 +5,9 @@
 #include "SDL.h"
 #include "SDL2_gfxPrimitives.h"
 
+namespace deathblade{
+
+
 /*!
  * \brief The TextureWall class is a simple wall stretching a texture. More efficient than BasicWall.
  */
@@ -34,4 +37,5 @@ private:
 
 };
 
+} // deathblade namespace
 #endif // TEXTUREWALL_H

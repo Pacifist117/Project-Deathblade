@@ -5,6 +5,9 @@
 #include "SDL.h"
 #include "SDL2_gfxPrimitives.h"
 
+namespace deathblade{
+
+
 /*!
  * \brief The BasicWall class is a colored polygon that can collide with other objects.
  *
@@ -46,4 +49,5 @@ private:
     SDL_Color color; //!< Color of wall set by set_color()
 };
 
+} // deathblade namespace
 #endif // BASICWALL_H

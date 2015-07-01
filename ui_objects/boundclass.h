@@ -4,6 +4,9 @@
 #include "gameobjects/objectbase.h"
 #include "controller_camera/cameracontrol.h"
 
+namespace deathblade{
+
+
 /*!
  * \brief The BoundClass class is a very early implementation of how a player controls a bounce.
  */
@@ -35,4 +38,5 @@ public:
 
 };
 
+} // deathblade namespace
 #endif // BOUNDCLASS_H

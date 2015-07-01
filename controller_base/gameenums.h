@@ -1,7 +1,8 @@
 #ifndef GAMEENUMS_H
 #define GAMEENUMS_H
 
-namespace db {
+
+namespace deathblade{
 
 /*!
  * \brief The ZPlane enum labels which depth plane an object is on

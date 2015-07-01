@@ -1,5 +1,8 @@
 #include "boundclass.h"
 
+namespace deathblade{
+
+
 BoundClass::BoundClass()
 {
     xclick = 0;
@@ -30,3 +33,5 @@ void BoundClass::drawon(SDL_Renderer *renderer, CameraControl *camera)
 
 
 }
+
+} // deathblade namespace

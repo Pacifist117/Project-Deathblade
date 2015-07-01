@@ -1,8 +1,11 @@
 #include "controller_camera/cameracontrol.h"
 
+namespace deathblade{
+
+
 CameraControl::CameraControl(TempSettings *gamesettings){
 
-	if (gamesettings == NULL){
+    if (gamesettings == nullptr){
 		std::cerr << "A null pointer was passed into camera control\n";
 		return;
 	}
@@ -521,3 +524,4 @@ std::string CameraControl::parse_arguments(std::vector<std::string> args){
     return returnstring.str();
 }
 
+} // deathblade namespace

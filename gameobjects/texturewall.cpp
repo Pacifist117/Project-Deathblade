@@ -1,5 +1,8 @@
 #include "gameobjects/texturewall.h"
 
+namespace deathblade{
+
+
 TextureWall::TextureWall()
 {
     wall_texture = NULL;
@@ -38,3 +41,5 @@ void TextureWall::drawon(SDL_Renderer *renderer, CameraControl* camera){
 
     SDL_RenderCopyEx(renderer, wall_texture, NULL, &dst, (-camera->camyaw)*180.0/3.14159265359, NULL, SDL_FLIP_NONE);
 }
+
+} // deathblade namespace

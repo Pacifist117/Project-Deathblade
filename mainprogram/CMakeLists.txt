@@ -5,11 +5,12 @@ target_link_libraries(mainprogram
     ${SDL2_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_gfx_LIBRARY}
-	base_controller
-    camera_controller 
-    developer_console
+    utility
+    base_controller
+        camera_controller
+        developer_console
     gameobjects
-	ui_objects
+    ui_objects
     player
 )
 
