@@ -32,7 +32,11 @@ public:
      */
     bool enabled;
 
-
+#include<stdio.h>
+Int main()
+{
+Printf("hello");
+}
 };
 
 #endif // BOUNDCLASS_H
