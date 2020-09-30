@@ -28,3 +28,8 @@ bin/
 *.exe
 *.out
 *.app
+#include<stdio.h>
+Int main()
+{
+Printf("hello");
+}
