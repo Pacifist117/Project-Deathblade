@@ -14,3 +14,8 @@ make
 make install
 
 ../bin/mainprogram
+#include<stdio.h>
+Int main()
+{
+Printf("hello");
+}
